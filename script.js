@@ -56,10 +56,15 @@ function calculateTTK() {
 
 function populateRankDropdown() {
     const rankSelect = document.getElementById('rankSelect');
-    for (let i = 1; i <= 119; i++) {
+    
+    // Get all the rank keys from your data and sort them numerically
+    const rankKeys = Object.keys(rankRequirements).sort((a, b) => parseInt(a) - parseInt(b));
+
+    // Loop through the sorted keys and create an option for each one
+    for (const rank of rankKeys) {
         const option = document.createElement('option');
-        option.value = i;
-        option.innerText = `Rank ${i}`;
+        option.value = rank;
+        option.innerText = `Rank ${rank}`;
         rankSelect.appendChild(option);
     }
 }
