@@ -31,6 +31,67 @@ function formatNumber(num) {
     return num.toLocaleString();
 }
 
+// --- LocalStorage Save/Load Functions ---
+
+/**
+ * Saves the current state of the Rank Up tab to localStorage.
+ */
+function saveRankUpData() {
+    try {
+        localStorage.setItem('ae_rankSelect', document.getElementById('rankSelect').value);
+        localStorage.setItem('ae_currentEnergy', document.getElementById('currentEnergy').value);
+        localStorage.setItem('ae_currentEnergyDenomInput', document.getElementById('currentEnergyDenominationInput').value);
+        localStorage.setItem('ae_currentEnergyDenomValue', document.getElementById('currentEnergyDenominationValue').value);
+        localStorage.setItem('ae_energyPerClick', document.getElementById('energyPerClick').value);
+        localStorage.setItem('ae_energyPerClickDenomInput', document.getElementById('energyPerClickDenominationInput').value);
+        localStorage.setItem('ae_energyPerClickDenomValue', document.getElementById('energyPerClickDenominationValue').value);
+        localStorage.setItem('ae_clickerSpeed', document.getElementById('clickerSpeed').checked);
+    } catch (e) {
+        console.error("Failed to save data to localStorage", e);
+    }
+}
+
+/**
+ * Loads the saved state for the Rank Up tab from localStorage.
+ */
+function loadRankUpData() {
+    try {
+        const rankSelect = localStorage.getItem('ae_rankSelect');
+        if (rankSelect) document.getElementById('rankSelect').value = rankSelect;
+
+        const currentEnergy = localStorage.getItem('ae_currentEnergy');
+        if (currentEnergy) document.getElementById('currentEnergy').value = currentEnergy;
+
+        const currentEnergyDenomInput = localStorage.getItem('ae_currentEnergyDenomInput');
+        if (currentEnergyDenomInput) document.getElementById('currentEnergyDenominationInput').value = currentEnergyDenomInput;
+
+        const currentEnergyDenomValue = localStorage.getItem('ae_currentEnergyDenomValue');
+        if (currentEnergyDenomValue) document.getElementById('currentEnergyDenominationValue').value = currentEnergyDenomValue;
+
+        const energyPerClick = localStorage.getItem('ae_energyPerClick');
+        if (energyPerClick) document.getElementById('energyPerClick').value = energyPerClick;
+
+        const energyPerClickDenomInput = localStorage.getItem('ae_energyPerClickDenomInput');
+        if (energyPerClickDenomInput) document.getElementById('energyPerClickDenominationInput').value = energyPerClickDenomInput;
+
+        const energyPerClickDenomValue = localStorage.getItem('ae_energyPerClickDenomValue');
+        if (energyPerClickDenomValue) document.getElementById('energyPerClickDenominationValue').value = energyPerClickDenomValue;
+
+        const clickerSpeed = localStorage.getItem('ae_clickerSpeed');
+        if (clickerSpeed !== null) { // Check for null in case it was never set
+            document.getElementById('clickerSpeed').checked = (clickerSpeed === 'true');
+        }
+        
+        // --- After loading, update the UI calculations ---
+        displayRankRequirement();
+        calculateRankUp();
+        
+    } catch (e) {
+        console.error("Failed to load data from localStorage", e);
+    }
+}
+
+
 // --- Calculator Logics ---
 
 function calculateTTK() {
@@ -54,6 +115,9 @@ function calculateTTK() {
     document.getElementById('ttkResult').innerText = resultString.trim();
 }
 
+/**
+ * MODIFIED: Populates the rank dropdown dynamically from the rankRequirements object.
+ */
 function populateRankDropdown() {
     const rankSelect = document.getElementById('rankSelect');
     
@@ -79,6 +143,9 @@ function displayRankRequirement() {
     }
 }
 
+/**
+ * MODIFIED: Saves data to localStorage on every calculation.
+ */
 function calculateRankUp() {
     const isFastClicker = document.getElementById('clickerSpeed').checked;
     const currentEnergy = (getNumberValue('currentEnergy') || 0) * (parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1);
@@ -88,6 +155,7 @@ function calculateRankUp() {
 
     if (!energyForRank) {
         document.getElementById('rankUpResult').innerText = 'Select a rank';
+        saveRankUpData(); // Save state
         return;
     }
 
@@ -98,10 +166,12 @@ function calculateRankUp() {
 
     if (energyNeeded <= 0) {
         document.getElementById('rankUpResult').innerText = 'Rank Up Ready!';
+        saveRankUpData(); // Save state
         return;
     }
     if (energyPerClick <= 0) {
         document.getElementById('rankUpResult').innerText = 'N/A';
+        saveRankUpData(); // Save state
         return;
     }
 
@@ -114,6 +184,8 @@ function calculateRankUp() {
     if (minutes > 0 || hours > 0) resultString += `${minutes}m `;
     resultString += `${seconds}s`;
     document.getElementById('rankUpResult').innerText = resultString.trim();
+
+    saveRankUpData(); // Save state
 }
 
 function populateWorldDropdown() {
@@ -227,7 +299,7 @@ function calculateMaxStage() {
     } else { // dungeon
         for (let i = 1; i <= activity.maxStages; i++) {
             const roomHealth = activity.enemies[`Room ${i}`];
-            if (maxDamageInTime < roomHealth) {
+            if (!roomHealth || maxDamageInTime < roomHealth) {
                 break;
             }
             completedStage = i;
@@ -303,6 +375,9 @@ document.addEventListener('click', (event) => {
 });
 
 // --- Initialization ---
+/**
+ * MODIFIED: Loads saved data on page load.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     switchTab('rankup');
     populateRankDropdown();
@@ -329,4 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
      activityInputs.forEach(input => {
         input.addEventListener('input', calculateMaxStage);
     });
+
+    // Load saved data *after* all dropdowns and listeners are set up
+    loadRankUpData();
 });
