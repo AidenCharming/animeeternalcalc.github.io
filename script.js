@@ -1,5 +1,5 @@
 // --- Tab Switching Logic ---
-const tabs = ['rankup', 'eta', 'ttk', 'raid']; // 'star' removed
+const tabs = ['rankup', 'eta', 'ttk', 'raid'];
 function switchTab(activeTab) {
     tabs.forEach(tab => {
         const panel = document.getElementById(`panel-${tab}`);
@@ -14,6 +14,12 @@ function switchTab(activeTab) {
     });
 }
 
+// Global objects to hold dynamically loaded data.
+// They are populated by the loadAllData() function.
+const worldData = {};
+const activityData = {};
+
+
 // --- Helper Functions ---
 function getNumberValue(id) {
     return parseFloat(document.getElementById(id).value) || 0;
@@ -22,8 +28,10 @@ function getNumberValue(id) {
 function formatNumber(num) {
     if (num === 0) return '0';
     if (num < 1000) return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    // Create a reversed copy to find the largest denomination match first
     const reversedDenominations = [...denominations].reverse();
     for (const denom of reversedDenominations) {
+        // We check for > 1 to skip the 'None' denomination
         if (denom.value > 1 && num >= denom.value) {
             return `${(num / denom.value).toFixed(2)}${denom.name}`;
         }
@@ -39,10 +47,6 @@ function debounce(func, delay) {
         timeout = setTimeout(() => func.apply(this, args), delay);
     };
 }
-
-// Global variables to hold all fetched data
-// REMOVED: let worldData = {}; and let activityData = {}; 
-// They are now consts defined in data-core.js and accessed globally.
 
 // --- LocalStorage Save/Load Functions ---
 function saveRankUpData() {
@@ -66,7 +70,7 @@ function loadRankUpData() {
         const rankSelect = localStorage.getItem('ae_rankSelect');
         if (rankSelect) {
             document.getElementById('rankSelect').value = rankSelect;
-            document.getElementById('rankInput').value = `Rank ${rankSelect}`;
+            document.getElementById('rankInput').value = rankSelect;
         }
         
         const rankInput = localStorage.getItem('ae_rankInput');
@@ -131,12 +135,13 @@ function loadETAData() {
         document.getElementById('targetEnergyETADenominationInput').value = localStorage.getItem('ae_targetEnergyETADenomInput') || '';
         document.getElementById('targetEnergyETADenominationValue').value = localStorage.getItem('ae_targetEnergyETADenominationValue') || '1';
         document.getElementById('energyPerClickETA').value = localStorage.getItem('ae_energyPerClickETA') || '';
-        document.getElementById('energyPerClickETADenominationInput').value = localStorage.getItem('ae_energyPerClickETADenominationInput') || '';
+        document.getElementById('energyPerClickETADenominationInput').value = localStorage.getItem('ae_energyPerClickETADenomInput') || '';
         document.getElementById('energyPerClickETADenominationValue').value = localStorage.getItem('ae_energyPerClickETADenominationValue') || '1';
         
         const clickerSpeed = localStorage.getItem('ae_clickerSpeedETA');
         if (clickerSpeed !== null) {
             const isChecked = (clickerSpeed === 'true');
+            // Sync both toggles
             document.getElementById('clickerSpeed').checked = isChecked;
             document.getElementById('clickerSpeedETA').checked = isChecked;
         }
@@ -321,16 +326,14 @@ function displayEnemyHealth() {
 async function loadAllData() {
     console.log("DEBUG: Starting to load all data...");
 
-    // NOTE: worldData and activityData are already defined as constants in data-core.js
-    // We will use Object.assign to merge fetched data into these global constants if available.
-
     const manifestPromise = fetch('data-manifest.json')
         .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}. Make sure you have run the create_manifest.py script.`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}. Make sure data-manifest.json exists.`);
             return response.json();
         })
         .catch(error => {
-            console.warn('WARNING: Could not load data-manifest.json. Using mock data.', error);
+            console.warn('WARNING: Could not load data-manifest.json. Raids/Dungeons will be unavailable.', error);
+            // Return a default structure to prevent further errors
             return { raids: [], dungeons: [] };
         });
 
@@ -340,17 +343,15 @@ async function loadAllData() {
             return response.json();
         })
         .catch(error => {
-            console.warn('WARNING: Error loading data-worlds.json. Using mock data.', error);
-            // Returning null here so we don't overwrite the existing const worldData with an empty object
+            console.warn('WARNING: Error loading data-worlds.json. TTK calculator will be unavailable.', error);
             return null; 
         });
 
     try {
         const [manifest, loadedWorlds] = await Promise.all([manifestPromise, worldPromise]);
         
-        // If real world data was loaded, merge it into the global worldData constant
+        // Populate worldData if the fetch was successful
         if (loadedWorlds) {
-            // Using Object.assign to modify the constant object's properties, which is allowed.
             Object.assign(worldData, loadedWorlds);
         }
 
@@ -375,20 +376,13 @@ async function loadAllData() {
             Promise.all(raidPromises)
         ]);
         
-        const filteredDungeons = loadedDungeons.filter(Boolean);
-        const filteredRaids = loadedRaids.filter(Boolean);
+        const allActivities = [...loadedDungeons, ...loadedRaids].filter(Boolean); // Filter out nulls from failed fetches
         
-        let combinedData = {};
-        // Start with the mock activity data defined in data-core.js
-        Object.assign(combinedData, activityData); 
+        allActivities.forEach(activity => {
+            activityData[activity.name] = activity.data;
+        });
         
-        filteredDungeons.forEach(d => { combinedData[d.name] = d.data; });
-        filteredRaids.forEach(r => { combinedData[r.name] = r.data; });
-
-        // Overwrite the activityData constant properties with the combined data
-        Object.assign(activityData, combinedData);
-        
-        console.log("DEBUG: Successfully loaded, sorted, and combined all dynamic activity data.");
+        console.log("DEBUG: Successfully loaded and combined all dynamic activity data.");
 
     } catch (error) {
         console.error("Fatal error during data loading process:", error);
@@ -399,6 +393,7 @@ function populateActivityDropdown() {
     const select = document.getElementById('activitySelect');
     select.innerHTML = '<option value="">-- Select an Activity --</option>';
     
+    // Sort keys alphabetically for a consistent order
     const sortedActivityNames = Object.keys(activityData).sort((a, b) => a.localeCompare(b));
 
     sortedActivityNames.forEach(name => {
@@ -452,14 +447,15 @@ function calculateMaxStage() {
     if (activity.type === 'raid' && activity.healthMultiplier) {
         let currentHealth = activity.baseHealth;
         for (let i = 1; i <= activity.maxStages; i++) {
-            const totalWaveHealth = currentHealth * 5; // Assuming 5 enemies per wave
+            // Assuming 5 enemies per wave, as is common
+            const totalWaveHealth = currentHealth * 5; 
             if (maxDamageInTime < totalWaveHealth) {
                 break;
             }
             completedStage = i;
             currentHealth *= activity.healthMultiplier;
         }
-    } else {
+    } else { // Dungeons
         for (let i = 1; i <= activity.maxStages; i++) {
             const roomHealth = activity.enemies[`Room ${i}`];
             if (!roomHealth || maxDamageInTime < parseFloat(roomHealth)) {
@@ -515,19 +511,20 @@ function setupRankSearch(inputId, valueId, listId) {
     }
 
     function handleRankInputBlur() {
-        const rankValue = inputEl.value.trim();
-        if (rankRequirements[rankValue]) {
-            if (valueEl.value === rankValue) return;
-            valueEl.value = rankValue;
-            inputEl.value = rankValue;
-            displayRankRequirement();
-            calculateRankUp();
-        }
-        listEl.classList.add('hidden'); // Hide list on blur
+        setTimeout(() => { // Use timeout to allow click event to fire first
+            const rankValue = inputEl.value.trim();
+            if (rankRequirements[rankValue]) {
+                if (valueEl.value !== rankValue) {
+                    valueEl.value = rankValue;
+                    displayRankRequirement();
+                    calculateRankUp();
+                }
+            }
+            listEl.classList.add('hidden');
+        }, 150);
     }
     
     function handleRankInputFocus() {
-        // Show all ranks when focusing if input is empty, or filter if not.
         filterAndShowRanks();
     }
 
@@ -549,12 +546,8 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
     }
 
     function filterAndShowDenominations() {
-        const filterText = inputEl.value.toLowerCase();
-        // Include 'None' only if the filter is empty or starts with 'n'
-        const filtered = denominations.filter(d => 
-            (filterText === '' && d.name === 'None') || // Always show 'None' if empty
-            (d.name.toLowerCase().startsWith(filterText) && d.name !== 'None') // Filter others
-        );
+        const filterText = inputEl.value.trim().toLowerCase();
+        const filtered = denominations.filter(d => d.name.toLowerCase().startsWith(filterText));
         renderDenominationsList(filtered);
     }
 
@@ -562,17 +555,12 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
         listEl.innerHTML = '';
         if (list.length === 0) { listEl.classList.add('hidden'); return; }
         
-        // Ensure 'None' is always at the top if present
-        list.sort((a, b) => {
-            if (a.name === 'None') return -1;
-            if (b.name === 'None') return 1;
-            return 0;
-        });
+        list.sort((a, b) => a.value - b.value);
         
         list.forEach(d => {
             const item = document.createElement('div');
             item.className = 'p-2 hover:bg-[#3a3a5a] cursor-pointer text-sm';
-            item.textContent = d.name;
+            item.textContent = d.name === 'None' ? 'None (No Abbreviation)' : d.name;
             item.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 inputEl.value = d.name === 'None' ? '' : d.name;
@@ -586,32 +574,30 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
     }
     
     function handleDenominationBlur() {
-        // Find the denomination based on the input text
-        const inputText = inputEl.value.trim();
-        const foundDenom = denominations.find(d => d.name === inputText);
+         setTimeout(() => { // Use timeout to allow click event to fire first
+            const inputText = inputEl.value.trim();
+            const foundDenom = denominations.find(d => d.name.toLowerCase() === inputText.toLowerCase());
 
-        if (foundDenom) {
-            valueEl.value = foundDenom.value;
-        } else if (inputText === '') {
-             // Default to 'None' if input is cleared
-            inputEl.value = '';
-            valueEl.value = 1;
-        } else {
-            // Revert to the value stored in the hidden field or 'None'
-            const currentValue = parseFloat(valueEl.value) || 1;
-            const currentDenom = denominations.find(d => d.value == currentValue);
-            inputEl.value = currentDenom && currentDenom.name !== 'None' ? currentDenom.name : '';
-        }
-        
-        listEl.classList.add('hidden');
-        if (callback) callback();
+            if (foundDenom) {
+                valueEl.value = foundDenom.value;
+                inputEl.value = foundDenom.name === 'None' ? '' : foundDenom.name;
+            } else if (inputText === '') {
+                valueEl.value = 1;
+            } else {
+                const currentValue = parseFloat(valueEl.value) || 1;
+                const currentDenom = denominations.find(d => d.value == currentValue);
+                inputEl.value = currentDenom && currentDenom.name !== 'None' ? currentDenom.name : '';
+            }
+            
+            listEl.classList.add('hidden');
+            if (callback) callback();
+        }, 150);
     }
     
     function handleDenominationFocus() {
         filterAndShowDenominations();
     }
     
-    // The previous fix for the ReferenceError remains here (filterAndShowDenominations)
     inputEl.addEventListener('input', debounce(filterAndShowDenominations, 300));
     inputEl.addEventListener('focus', handleDenominationFocus);
     inputEl.addEventListener('blur', handleDenominationBlur);
@@ -619,26 +605,18 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
 
 // --- Global Click Listener to Hide Dropdowns ---
 document.addEventListener('click', (event) => {
-    const allLists = document.querySelectorAll('.search-list');
-    let clickedInside = false;
-    const path = event.composedPath || (event.composedPath || function(e) {
-        for (var t = []; e; )
-            t.push(e),
-            e = e.parentNode;
-        return t
-    }(event.target));
+    // Check if the click was outside of any element with the 'relative' class that contains a search list
+    const relativeContainers = document.querySelectorAll('.relative');
+    let clickedInsideAContainer = false;
 
-    if (Array.isArray(path)) {
-        for (const el of path) {
-            if (!el || !el.classList) continue;
-            if (el.classList.contains('input-field') || el.classList.contains('search-list')) {
-                clickedInside = true;
-                break;
-            }
+    relativeContainers.forEach(container => {
+        if (container.contains(event.target)) {
+            clickedInsideAContainer = true;
         }
-    }
+    });
 
-    if (!clickedInside) {
+    if (!clickedInsideAContainer) {
+        const allLists = document.querySelectorAll('.search-list');
         allLists.forEach(list => list.classList.add('hidden'));
     }
 });
@@ -648,7 +626,6 @@ document.addEventListener('click', (event) => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DEBUG: DOM fully loaded. Initializing script.");
 
-    // The functions below now use the global constants defined in data-core.js
     loadAllData().then(() => {
         console.log("DEBUG: Data loading complete. Setting up UI.");
         switchTab('rankup');
@@ -682,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
         etaInputs.forEach(input => input.addEventListener('input', debounce(calculateEnergyETA, 300)));
         document.getElementById('clickerSpeedETA').addEventListener('change', calculateEnergyETA);
         
-        // --- Load Saved Data ---\
+        // --- Load Saved Data ---
         loadRankUpData();
         loadETAData();
     });
