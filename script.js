@@ -443,7 +443,7 @@ function setupRankSearch(inputId, valueId, listId) {
     const allRanks = Object.keys(rankRequirements).sort((a, b) => parseInt(a) - parseInt(b));
 
     function filterAndShowRanks() {
-        const filterText = inputEl.value.toLowerCase().replace('rank', '').trim();
+        const filterText = inputEl.value.trim();
         const filtered = allRanks.filter(rank => rank.startsWith(filterText));
         renderRanksList(filtered);
     }
@@ -457,10 +457,10 @@ function setupRankSearch(inputId, valueId, listId) {
         list.forEach(rank => {
             const item = document.createElement('div');
             item.className = 'p-2 hover:bg-[#3a3a5a] cursor-pointer text-sm';
-            item.textContent = `Rank ${rank}`;
+            item.textContent = rank;
             item.addEventListener('mousedown', (e) => {
                 e.preventDefault();
-                inputEl.value = `Rank ${rank}`;
+                inputEl.value = rank;
                 valueEl.value = rank;
                 listEl.classList.add('hidden');
                 displayRankRequirement();
@@ -471,8 +471,28 @@ function setupRankSearch(inputId, valueId, listId) {
         listEl.classList.remove('hidden');
     }
 
+    // This new function handles the case where a user types a valid rank
+    // and then clicks or taps away without selecting from the dropdown.
+    function handleRankInputBlur() {
+        const rankValue = inputEl.value.trim();
+        // Check if the entered value is a valid rank in our data
+        if (rankRequirements[rankValue]) {
+            // If the hidden value is already correct, we don't need to do anything
+            if (valueEl.value === rankValue) return;
+
+            // Update the hidden value and format the visible text
+            valueEl.value = rankValue;
+            inputEl.value = rankValue;
+            
+            // Trigger the calculation and update the display
+            displayRankRequirement();
+            calculateRankUp();
+        }
+    }
+
     inputEl.addEventListener('input', debounce(filterAndShowRanks, 300)); // Apply debounce here
     inputEl.addEventListener('focus', filterAndShowRanks);
+    inputEl.addEventListener('blur', handleRankInputBlur); // Add the new blur listener
 }
 
 function setupDenominationSearch(inputId, valueId, listId, callback) {
@@ -601,4 +621,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loadETAData();
     });
 });
+
+
 
