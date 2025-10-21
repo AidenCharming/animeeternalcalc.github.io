@@ -418,6 +418,17 @@ function calculateMaxStage() {
     resultEl.innerText = `${completedStage} / ${activity.maxStages}`;
 }
 
+// +++ DEBOUNCE HELPER FUNCTION +++
+// This function limits how often a function can run.
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+
 // --- Searchable Dropdown Logic ---
 function setupRankSearch(inputId, valueId, listId) {
     const inputEl = document.getElementById(inputId);
@@ -460,7 +471,7 @@ function setupRankSearch(inputId, valueId, listId) {
         listEl.classList.remove('hidden');
     }
 
-    inputEl.addEventListener('input', filterAndShowRanks);
+    inputEl.addEventListener('input', debounce(filterAndShowRanks, 300)); // Apply debounce here
     inputEl.addEventListener('focus', filterAndShowRanks);
 }
 
@@ -498,7 +509,7 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
         });
         listEl.classList.remove('hidden');
     }
-    inputEl.addEventListener('input', filterAndShowDenominations);
+    inputEl.addEventListener('input', debounce(filterAndShowDenominations, 300)); // And apply it here
     inputEl.addEventListener('focus', filterAndShowDenominations);
 }
 
@@ -590,3 +601,4 @@ document.addEventListener('DOMContentLoaded', () => {
         loadETAData();
     });
 });
+
