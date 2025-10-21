@@ -1,0 +1,31 @@
+{
+    "raids": [
+        "Cursed Raid.json",
+        "Dragon Raid.json",
+        "Ghoul Raid.json",
+        "Gleam Raid.json",
+        "Green Planet Raid.json",
+        "Halloween Raid.json",
+        "Hollow Raid.json",
+        "Leaf Raid.json",
+        "Mundo Raid.json",
+        "Netherworld Defense.json",
+        "Pokita Defense.json",
+        "Progression 2 Raid.json",
+        "Progression Raid.json",
+        "Restaurant Raid.json",
+        "Sin Raid.json",
+        "Titan Defense.json",
+        "Tournament Raid.json"
+    ],
+    "dungeons": [
+        "Crazy Dungeon.json",
+        "Easy Dungeon.json",
+        "Hard Dungeon.json",
+        "Insane Dungeon.json",
+        "Kaiju Base Dungeon.json",
+        "Medium Dungeon.json",
+        "Nightmare Dungeon.json",
+        "Suffering Dungeon.json"
+    ]
+}

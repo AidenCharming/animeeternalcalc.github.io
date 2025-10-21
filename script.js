@@ -22,6 +22,7 @@ function getNumberValue(id) {
 function formatNumber(num) {
     if (num === 0) return '0';
     if (num < 1000) return num.toLocaleString();
+    // Create a copy to reverse without modifying the original
     const reversedDenominations = [...denominations].reverse();
     for (const denom of reversedDenominations) {
         if (denom.value > 1 && num >= denom.value) {
@@ -31,7 +32,8 @@ function formatNumber(num) {
     return num.toLocaleString();
 }
 
-// Global variable to hold all merged raid/dungeon data
+// Global variables to hold all fetched data
+let worldData = {};
 let activityData = {};
 
 // --- LocalStorage Save/Load Functions ---
@@ -111,7 +113,6 @@ function calculateTTK() {
 
 function populateRankDropdown() {
     const rankSelect = document.getElementById('rankSelect');
-    
     const rankKeys = Object.keys(rankRequirements).sort((a, b) => parseInt(a) - parseInt(b));
 
     for (const rank of rankKeys) {
@@ -189,9 +190,9 @@ function populateEnemyDropdown() {
     const selectedWorldName = document.getElementById('worldSelect').value;
     const world = worldData[selectedWorldName];
     
-    enemySelect.innerHTML = '<option value="">-- Select an Enemy/Room --</option>';
+    enemySelect.innerHTML = '<option value="">-- Select an Enemy --</option>';
     document.getElementById('enemyHealth').value = '';
-    document.getElementById('enemyHealthDisplay').innerText = 'Select an enemy/room to see health';
+    document.getElementById('enemyHealthDisplay').innerText = 'Select an enemy to see health';
 
     if (world && world.enemies) {
         Object.keys(world.enemies).forEach(enemyName => {
@@ -223,70 +224,81 @@ function displayEnemyHealth() {
 }
 
 async function loadAllData() {
-    console.log("DEBUG: Starting to load all activity data...");
+    console.log("DEBUG: Starting to load all data...");
 
-    // This list is now based on your screenshots.
-    const raidFiles = [
-        'Cursed Raid.json', 'Dragon Raid.json', 'Ghoul Raid.json', 'Gleam Raid.json',
-        'Green Planet Raid.json', 'Hollow Raid.json', 'Leaf Raid.json', 'Mundo Raid.json',
-        'Netherworld Defense.json', 'Pokita Defense.json', 'Progression 2 Raid.json',
-        'Progression Raid.json', 'Restaurant Raid.json', 'Sin Raid.json', 'Titan Defense.json',
-        'Tournament Raid.json'
-    ];
-    
-    const dungeonFiles = [
-        'Crazy Dungeon.json', 'Easy Dungeon.json', 'Hard Dungeon.json', 'Insane Dungeon.json',
-        'Kaiju Base Dungeon.json', 'Medium Dungeon.json', 'Nightmare Dungeon.json', 'Suffering Dungeon.json'
-    ];
+    // First, fetch the manifest file that lists all other data files.
+    const manifestPromise = fetch('data-manifest.json')
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}. Make sure you have run the create_manifest.py script.`);
+            return response.json();
+        })
+        .catch(error => {
+            console.error('CRITICAL: Could not load data-manifest.json.', error);
+            // Return a default structure to prevent further crashes
+            return { raids: [], dungeons: [] };
+        });
 
-    const raidPromises = raidFiles.map(file => 
-        fetch(`raids/${file}`)
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => ({ name: file.replace('.json', ''), data }))
-            .catch(error => console.error(`Error loading raid ${file}:`, error))
-    );
-
-    const dungeonPromises = dungeonFiles.map(file => 
-        fetch(`dungeons/${file}`)
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => ({ name: file.replace('.json', ''), data }))
-            .catch(error => console.error(`Error loading dungeon ${file}:`, error))
-    );
+    // Also fetch the world data at the same time.
+    const worldPromise = fetch('data-worlds.json')
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .catch(error => {
+            console.error('Error loading world data:', error);
+            return {}; // Return empty object on failure
+        });
 
     try {
-        const loadedDungeons = (await Promise.all(dungeonPromises)).filter(Boolean);
-        const loadedRaids = (await Promise.all(raidPromises)).filter(Boolean);
+        // Wait for both the manifest and world data to be loaded.
+        const [manifest, loadedWorlds] = await Promise.all([manifestPromise, worldPromise]);
+        worldData = loadedWorlds;
+        console.log("DEBUG: Manifest and world data loaded.");
 
-        // Sort each list alphabetically by name
-        loadedDungeons.sort((a, b) => a.name.localeCompare(b.name));
-        loadedRaids.sort((a, b) => a.name.localeCompare(b.name));
+        // Now, use the manifest to fetch all raids and dungeons dynamically.
+        const raidPromises = manifest.raids.map(file => 
+            fetch(`raids/${file}`)
+                .then(response => response.ok ? response.json() : Promise.reject(`Failed to load ${file}`))
+                .then(data => ({ name: file.replace('.json', ''), data }))
+                .catch(error => { console.error(`Error loading raid ${file}:`, error); return null; })
+        );
 
-        let combinedData = {};
+        const dungeonPromises = manifest.dungeons.map(file => 
+            fetch(`dungeons/${file}`)
+                .then(response => response.ok ? response.json() : Promise.reject(`Failed to load ${file}`))
+                .then(data => ({ name: file.replace('.json', ''), data }))
+                .catch(error => { console.error(`Error loading dungeon ${file}:`, error); return null; })
+        );
         
-        // Add sorted dungeons first
-        loadedDungeons.forEach(d => { combinedData[d.name] = d.data; });
-        // Then add sorted raids
-        loadedRaids.forEach(r => { combinedData[r.name] = r.data; });
+        // Wait for all the individual raid/dungeon files to load.
+        const [loadedDungeons, loadedRaids] = await Promise.all([
+            Promise.all(dungeonPromises),
+            Promise.all(raidPromises)
+        ]);
+        
+        const filteredDungeons = loadedDungeons.filter(Boolean);
+        const filteredRaids = loadedRaids.filter(Boolean);
+        
+        let combinedData = {};
+        filteredDungeons.forEach(d => { combinedData[d.name] = d.data; });
+        filteredRaids.forEach(r => { combinedData[r.name] = r.data; });
 
         activityData = combinedData;
-        console.log("DEBUG: Successfully loaded, sorted, and combined activity data:", activityData);
+        console.log("DEBUG: Successfully loaded, sorted, and combined all dynamic activity data.");
+
     } catch (error) {
-        console.error("Fatal error loading activity data:", error);
+        console.error("Fatal error during data loading process:", error);
     }
 }
-
 
 function populateActivityDropdown() {
     const select = document.getElementById('activitySelect');
     select.innerHTML = '<option value="">-- Select an Activity --</option>';
     
-    Object.keys(activityData).forEach(name => {
+    // Sort the keys of the combined activity data alphabetically before populating.
+    const sortedActivityNames = Object.keys(activityData).sort((a, b) => a.localeCompare(b));
+
+    sortedActivityNames.forEach(name => {
         const option = document.createElement('option');
         option.value = name;
         option.innerText = name;

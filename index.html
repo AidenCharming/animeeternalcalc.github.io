@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anime Eternal Calculator</title>
 
-    <!-- Use your chosen fonts -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Update Tailwind default sans to the chosen font
+        // Configure Tailwind to use the Poppins font
         tailwind.config = {
           theme: {
             extend: {
@@ -22,36 +23,36 @@
         }
     </script>
 
-    <!-- Auto-detect device capability and set class BEFORE styles load -->
-<script>
-(function(){
-  function isLowPower(){
-    try{
-      if (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
-      var nav = navigator || {};
-      if (nav.connection) {
-        if (nav.connection.saveData) return true;
-        var et = (nav.connection.effectiveType || '').toLowerCase();
-        if (et.indexOf('2g') !== -1 || et.indexOf('3g') !== -1) return true;
+    <!-- Performance-based styling -->
+    <script>
+    (function(){
+      function isLowPower(){
+        try{
+          if (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+          var nav = navigator || {};
+          if (nav.connection) {
+            if (nav.connection.saveData) return true;
+            var et = (nav.connection.effectiveType || '').toLowerCase();
+            if (et.indexOf('2g') !== -1 || et.indexOf('3g') !== -1) return true;
+          }
+          if (nav.deviceMemory && nav.deviceMemory <= 2) return true;
+          if (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) return true;
+          if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
+        }catch(e){}
+        return false;
       }
-      if (nav.deviceMemory && nav.deviceMemory <= 2) return true;
-      if (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) return true;
-      if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
-    }catch(e){}
-    return false;
-  }
-
-  var pref = localStorage.getItem('ae_low_power');
-  if (pref === null) {
-    pref = isLowPower() ? '1' : '0';
-    localStorage.setItem('ae_low_power', pref);
-  }
-  if (pref === '1') document.documentElement.classList.add('ae-low-power');
-  else document.documentElement.classList.add('ae-high-power');
-})();
-</script>
-
-<link rel="stylesheet" href="style.css">
+      var pref = localStorage.getItem('ae_low_power');
+      if (pref === null) {
+        pref = isLowPower() ? '1' : '0';
+        localStorage.setItem('ae_low_power', pref);
+      }
+      if (pref === '1') document.documentElement.classList.add('ae-low-power');
+      else document.documentElement.classList.add('ae-high-power');
+    })();
+    </script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
@@ -69,7 +70,7 @@
                 <button id="tab-raid" class="tab-btn text-sm md:text-base flex-1 py-3 px-2 focus:outline-none" onclick="switchTab('raid')">Raids / Dungeons</button>
             </div>
 
-            <!-- Calculator Panels -->
+            <!-- Panel: Rank Up -->
             <div id="panel-rankup" class="space-y-6">
                  <div class="flex items-center justify-center space-x-4 py-2">
                     <span class="text-gray-300 text-sm">Slow Clicker</span>
@@ -117,6 +118,7 @@
                 </div>
             </div>
 
+            <!-- Panel: Time to Kill -->
             <div id="panel-ttk" class="hidden space-y-6">
                 <div>
                     <label for="worldSelect" class="block mb-2 text-sm font-medium">Select World</label>
@@ -152,6 +154,7 @@
                 </div>
             </div>
 
+            <!-- Panel: Raids / Dungeons -->
             <div id="panel-raid" class="hidden space-y-6">
                  <div>
                     <label for="activitySelect" class="block mb-2 text-sm font-medium">Select Raid / Dungeon</label>
@@ -183,12 +186,10 @@
         </main>
     </div>
     
-    <!-- Load static data files -->
+    <!-- Load static data file -->
     <script src="data-core.js"></script>
-    <script src="data-worlds.js"></script>
-
-    <!-- Load the main logic file LAST. It will fetch the raid/dungeon JSON files. -->
+    
+    <!-- The main logic file will now fetch all JSON data, including worlds. -->
     <script src="script.js"></script>
 </body>
 </html>
-
