@@ -31,6 +31,10 @@ function formatNumber(num) {
     return num.toLocaleString();
 }
 
+// --- Combine Raid and Dungeon data into one object ---
+const activityData = { ...raidData, ...dungeonData };
+
+
 // --- LocalStorage Save/Load Functions ---
 
 /**
@@ -296,7 +300,7 @@ function calculateMaxStage() {
             completedStage = i;
             currentHealth *= activity.healthMultiplier;
         }
-    } else { // dungeon
+    } else { // dungeon or leaf raid with 'enemies'
         for (let i = 1; i <= activity.maxStages; i++) {
             const roomHealth = activity.enemies[`Room ${i}`];
             if (!roomHealth || maxDamageInTime < roomHealth) {
@@ -408,3 +412,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load saved data *after* all dropdowns and listeners are set up
     loadRankUpData();
 });
+
