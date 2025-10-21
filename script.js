@@ -1,5 +1,5 @@
 // --- Tab Switching Logic ---
-const tabs = ['rankup', 'ttk', 'raid'];
+const tabs = ['rankup', 'eta', 'ttk', 'raid'];
 function switchTab(activeTab) {
     tabs.forEach(tab => {
         const panel = document.getElementById(`panel-${tab}`);
@@ -47,7 +47,6 @@ function saveRankUpData() {
         localStorage.setItem('ae_energyPerClick', document.getElementById('energyPerClick').value);
         localStorage.setItem('ae_energyPerClickDenomInput', document.getElementById('energyPerClickDenominationInput').value);
         localStorage.setItem('ae_energyPerClickDenomValue', document.getElementById('energyPerClickDenominationValue').value);
-        localStorage.setItem('ae_clickerSpeed', document.getElementById('clickerSpeed').checked);
     } catch (e) {
         console.error("Failed to save data to localStorage", e);
     }
@@ -78,17 +77,45 @@ function loadRankUpData() {
 
         const energyPerClickDenomValue = localStorage.getItem('ae_energyPerClickDenomValue');
         if (energyPerClickDenomValue) document.getElementById('energyPerClickDenominationValue').value = energyPerClickDenomValue;
-
-        const clickerSpeed = localStorage.getItem('ae_clickerSpeed');
-        if (clickerSpeed !== null) {
-            document.getElementById('clickerSpeed').checked = (clickerSpeed === 'true');
-        }
         
         displayRankRequirement();
         calculateRankUp();
         
     } catch (e) {
         console.error("Failed to load data from localStorage", e);
+    }
+}
+
+function saveETAData() {
+    try {
+        localStorage.setItem('ae_eta_currentEnergy', document.getElementById('currentEnergyETA').value);
+        localStorage.setItem('ae_eta_currentEnergyDenomInput', document.getElementById('currentEnergyETADenominationInput').value);
+        localStorage.setItem('ae_eta_currentEnergyDenomValue', document.getElementById('currentEnergyETADenominationValue').value);
+        localStorage.setItem('ae_eta_targetEnergy', document.getElementById('targetEnergyETA').value);
+        localStorage.setItem('ae_eta_targetEnergyDenomInput', document.getElementById('targetEnergyETADenominationInput').value);
+        localStorage.setItem('ae_eta_targetEnergyDenomValue', document.getElementById('targetEnergyETADenominationValue').value);
+        localStorage.setItem('ae_eta_energyPerClick', document.getElementById('energyPerClickETA').value);
+        localStorage.setItem('ae_eta_energyPerClickDenomInput', document.getElementById('energyPerClickETADenominationInput').value);
+        localStorage.setItem('ae_eta_energyPerClickDenomValue', document.getElementById('energyPerClickETADenominationValue').value);
+    } catch (e) {
+        console.error("Failed to save ETA data to localStorage", e);
+    }
+}
+
+function loadETAData() {
+    try {
+        document.getElementById('currentEnergyETA').value = localStorage.getItem('ae_eta_currentEnergy') || '';
+        document.getElementById('currentEnergyETADenominationInput').value = localStorage.getItem('ae_eta_currentEnergyDenomInput') || '';
+        document.getElementById('currentEnergyETADenominationValue').value = localStorage.getItem('ae_eta_currentEnergyDenomValue') || '1';
+        document.getElementById('targetEnergyETA').value = localStorage.getItem('ae_eta_targetEnergy') || '';
+        document.getElementById('targetEnergyETADenominationInput').value = localStorage.getItem('ae_eta_targetEnergyDenomInput') || '';
+        document.getElementById('targetEnergyETADenominationValue').value = localStorage.getItem('ae_eta_targetEnergyDenomValue') || '1';
+        document.getElementById('energyPerClickETA').value = localStorage.getItem('ae_eta_energyPerClick') || '';
+        document.getElementById('energyPerClickETADenominationInput').value = localStorage.getItem('ae_eta_energyPerClickDenomInput') || '';
+        document.getElementById('energyPerClickETADenominationValue').value = localStorage.getItem('ae_eta_energyPerClickDenomValue') || '1';
+        calculateEnergyETA();
+    } catch (e) {
+        console.error("Failed to load ETA data from localStorage", e);
     }
 }
 
@@ -166,6 +193,43 @@ function calculateRankUp() {
 
     saveRankUpData();
 }
+
+function calculateEnergyETA() {
+    const isFastClicker = document.getElementById('clickerSpeedETA').checked;
+    const currentEnergy = (getNumberValue('currentEnergyETA') || 0) * (parseFloat(document.getElementById('currentEnergyETADenominationValue').value) || 1);
+    const targetEnergy = (getNumberValue('targetEnergyETA') || 0) * (parseFloat(document.getElementById('targetEnergyETADenominationValue').value) || 1);
+    const energyPerClick = (getNumberValue('energyPerClickETA') || 0) * (parseFloat(document.getElementById('energyPerClickETADenominationValue').value) || 1);
+
+    const SLOW_CPS = 1.0919;
+    const FAST_CPS = 5.88505;
+    const clicksPerSecond = isFastClicker ? FAST_CPS : SLOW_CPS;
+    const energyNeeded = targetEnergy - currentEnergy;
+
+    if (targetEnergy <= 0 || energyPerClick <= 0) {
+        document.getElementById('etaResult').innerText = 'N/A';
+        saveETAData();
+        return;
+    }
+
+    if (energyNeeded <= 0) {
+        document.getElementById('etaResult').innerText = 'Target Reached!';
+        saveETAData();
+        return;
+    }
+
+    const timeInSeconds = (energyNeeded / energyPerClick) / clicksPerSecond;
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = Math.round(timeInSeconds % 60);
+    let resultString = '';
+    if (hours > 0) resultString += `${hours}h `;
+    if (minutes > 0 || hours > 0) resultString += `${minutes}m `;
+    resultString += `${seconds}s`;
+    document.getElementById('etaResult').innerText = resultString.trim();
+
+    saveETAData();
+}
+
 
 function populateWorldDropdown() {
     const worldSelect = document.getElementById('worldSelect');
@@ -468,30 +532,61 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("DEBUG: Data loading complete. Setting up UI.");
         switchTab('rankup');
         
+        // --- Setup UI elements ---
         setupRankSearch('rankInput', 'rankSelect', 'rankList');
         populateWorldDropdown();
         populateActivityDropdown();
 
+        // --- Denomination Searches ---
         setupDenominationSearch('dpsDenominationInput', 'dpsDenominationValue', 'dpsDenominationList', calculateTTK);
         setupDenominationSearch('dpsActivityDenominationInput', 'dpsActivityDenominationValue', 'dpsActivityDenominationList', calculateMaxStage);
         setupDenominationSearch('currentEnergyDenominationInput', 'currentEnergyDenominationValue', 'currentEnergyDenominationList', calculateRankUp);
         setupDenominationSearch('energyPerClickDenominationInput', 'energyPerClickDenominationValue', 'energyPerClickDenominationList', calculateRankUp);
+        setupDenominationSearch('currentEnergyETADenominationInput', 'currentEnergyETADenominationValue', 'currentEnergyETADenominationList', calculateEnergyETA);
+        setupDenominationSearch('targetEnergyETADenominationInput', 'targetEnergyETADenominationValue', 'targetEnergyETADenominationList', calculateEnergyETA);
+        setupDenominationSearch('energyPerClickETADenominationInput', 'energyPerClickETADenominationValue', 'energyPerClickETADenominationList', calculateEnergyETA);
+
+        // --- Clicker Speed Toggle Sync ---
+        const clickerSpeedRankUp = document.getElementById('clickerSpeed');
+        const clickerSpeedETA = document.getElementById('clickerSpeedETA');
+
+        const savedClickerSpeed = localStorage.getItem('ae_clickerSpeed') === 'true';
+        clickerSpeedRankUp.checked = savedClickerSpeed;
+        clickerSpeedETA.checked = savedClickerSpeed;
+
+        const syncAndSaveSpeed = (isFast) => {
+            clickerSpeedRankUp.checked = isFast;
+            clickerSpeedETA.checked = isFast;
+            try {
+                localStorage.setItem('ae_clickerSpeed', isFast);
+            } catch (e) { console.error("Failed to save clicker speed", e); }
+        };
         
-        const rankUpInputs = [document.getElementById('clickerSpeed'), document.getElementById('currentEnergy'), document.getElementById('energyPerClick')];
-        rankUpInputs.forEach(input => {
-            const eventType = input.type === 'checkbox' ? 'change' : 'input';
-            input.addEventListener(eventType, calculateRankUp);
+        clickerSpeedRankUp.addEventListener('change', () => {
+            syncAndSaveSpeed(clickerSpeedRankUp.checked);
+            calculateRankUp();
         });
+
+        clickerSpeedETA.addEventListener('change', () => {
+            syncAndSaveSpeed(clickerSpeedETA.checked);
+            calculateEnergyETA();
+        });
+
+        // --- Event Listeners for Inputs ---
+        const rankUpInputs = [document.getElementById('currentEnergy'), document.getElementById('energyPerClick')];
+        rankUpInputs.forEach(input => input.addEventListener('input', calculateRankUp));
 
         const ttkInputs = [document.getElementById('yourDPS')];
         ttkInputs.forEach(input => { input.addEventListener('input', calculateTTK); });
         
         const activityInputs = [document.getElementById('yourDPSActivity'), document.getElementById('activityTimeLimit')];
-        activityInputs.forEach(input => {
-            input.addEventListener('input', calculateMaxStage);
-        });
+        activityInputs.forEach(input => input.addEventListener('input', calculateMaxStage));
+        
+        const etaInputs = [document.getElementById('currentEnergyETA'), document.getElementById('targetEnergyETA'), document.getElementById('energyPerClickETA')];
+        etaInputs.forEach(input => input.addEventListener('input', calculateEnergyETA));
 
+        // --- Load Saved Data ---
         loadRankUpData();
+        loadETAData();
     });
 });
-
