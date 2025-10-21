@@ -2,7 +2,6 @@ const raidData = {
     "Pokita Defense": { type: 'raid', baseHealth: 1e10, maxStages: 50, timeLimit: 60, healthMultiplier: 1.2 }, 
     "Restaurant Raid": { type: 'raid', baseHealth: 1e11, maxStages: 100, timeLimit: 60, healthMultiplier: 1.15 }, 
     "Ghoul Raid": { type: 'raid', baseHealth: 1e11, maxStages: 100, timeLimit: 60, healthMultiplier: 1.15 },
-    "Titan Defense": { type: 'raid', baseHealth: 1e12, maxStages: 100, timeLimit: 60, healthMultiplier: 1.2 }, 
     "Mundo Raid": { type: 'raid', baseHealth: 1e13, maxStages: 25, timeLimit: 45, healthMultiplier: 1.3 }, 
     "Gleam Raid": { type: 'raid', baseHealth: 1e14, maxStages: 100, timeLimit: 60, healthMultiplier: 1.15 },
     "Sin Raid": { type: 'raid', baseHealth: 1e14, maxStages: 100, timeLimit: 60, healthMultiplier: 1.15 }, 
@@ -15,7 +14,7 @@ const raidData = {
     "Tournament Raid": { type: 'raid', baseHealth: 1e29, maxStages: 100, timeLimit: 60, healthMultiplier: 1.2 }, 
     "Dragon Room Raid": { type: 'raid', baseHealth: 1e30, maxStages: 100, timeLimit: 60, healthMultiplier: 1.25 },
     "Leaf Raid": {
-        type: 'raid', // Corrected type
+        type: 'raid',
         maxStages: 2000,
         timeLimit: 60,
         enemies: {
@@ -218,7 +217,7 @@ const raidData = {
         'Room 1991': 8.69E+118, 'Room 1992': 9.56E+118, 'Room 1993': 1.05E+119, 'Room 1994': 1.16E+119, 'Room 1995': 1.27E+119, 'Room 1996': 1.40E+119, 'Room 1997': 1.54E+119, 'Room 1998': 1.69E+119, 'Room 1999': 1.86E+119, 'Room 2000': 2.05E+119 
         }
     },
-	"Titan Defense": { 
+    "Titan Defense": { 
         type: 'raid', 
         maxStages: 1000, 
         timeLimit: 60,
@@ -424,4 +423,5 @@ const raidData = {
             'Room 991': 8.58E+92, 'Room 992': 9.44E+92, 'Room 993': 1.04E+93, 'Room 994': 1.14E+93, 'Room 995': 1.26E+93,
             'Room 996': 1.38E+93, 'Room 997': 1.52E+93, 'Room 998': 1.67E+93, 'Room 999': 1.84E+93, 'Room 1000': 2.02E+93,
         }
+    }
 };
