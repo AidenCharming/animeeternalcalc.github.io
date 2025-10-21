@@ -1,3 +1,5 @@
+// Data file containing global constants and mock data.
+
 const denominations = [
     { name: 'None', value: 1 },
     { name: 'K', value: 1e3 },
@@ -42,6 +44,7 @@ const rankRequirements = {
 };
 
 // Mock world data to prevent loading errors in Time to Kill/Raid tabs
+// NOTE: These are defined here, and script.js uses them and attempts to load real data over them.
 const worldData = {
     "World 1": { 
         "enemies": { "Enemy 1": 1e10, "Enemy 2": 5e10, "Boss": 1e11 }

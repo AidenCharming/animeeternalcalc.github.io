@@ -41,8 +41,8 @@ function debounce(func, delay) {
 }
 
 // Global variables to hold all fetched data
-let worldData = {};
-let activityData = {}; 
+// REMOVED: let worldData = {}; and let activityData = {}; 
+// They are now consts defined in data-core.js and accessed globally.
 
 // --- LocalStorage Save/Load Functions ---
 function saveRankUpData() {
@@ -131,7 +131,7 @@ function loadETAData() {
         document.getElementById('targetEnergyETADenominationInput').value = localStorage.getItem('ae_targetEnergyETADenomInput') || '';
         document.getElementById('targetEnergyETADenominationValue').value = localStorage.getItem('ae_targetEnergyETADenominationValue') || '1';
         document.getElementById('energyPerClickETA').value = localStorage.getItem('ae_energyPerClickETA') || '';
-        document.getElementById('energyPerClickETADenominationInput').value = localStorage.getItem('ae_energyPerClickETADenomInput') || '';
+        document.getElementById('energyPerClickETADenominationInput').value = localStorage.getItem('ae_energyPerClickETADenominationInput') || '';
         document.getElementById('energyPerClickETADenominationValue').value = localStorage.getItem('ae_energyPerClickETADenominationValue') || '1';
         
         const clickerSpeed = localStorage.getItem('ae_clickerSpeedETA');
@@ -321,9 +321,9 @@ function displayEnemyHealth() {
 async function loadAllData() {
     console.log("DEBUG: Starting to load all data...");
 
-    // Assuming the user needs to manually create data-manifest.json, data-worlds.json, 
-    // and the raids/dungeons directories if they aren't provided.
-    // We will ensure to check for their existence but allow data-core.js mock data to be used as fallback.
+    // NOTE: worldData and activityData are already defined as constants in data-core.js
+    // We will use Object.assign to merge fetched data into these global constants if available.
+
     const manifestPromise = fetch('data-manifest.json')
         .then(response => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}. Make sure you have run the create_manifest.py script.`);
@@ -341,16 +341,17 @@ async function loadAllData() {
         })
         .catch(error => {
             console.warn('WARNING: Error loading data-worlds.json. Using mock data.', error);
-            // This fallback assumes worldData is globally initialized with mock data in data-core.js
-            return worldData; 
+            // Returning null here so we don't overwrite the existing const worldData with an empty object
+            return null; 
         });
 
     try {
         const [manifest, loadedWorlds] = await Promise.all([manifestPromise, worldPromise]);
         
-        // Only overwrite worldData if loadedWorlds is not empty and not the mock fallback
-        if (Object.keys(loadedWorlds).length > 0 && Object.keys(loadedWorlds)[0] !== "World 1") {
-            worldData = loadedWorlds;
+        // If real world data was loaded, merge it into the global worldData constant
+        if (loadedWorlds) {
+            // Using Object.assign to modify the constant object's properties, which is allowed.
+            Object.assign(worldData, loadedWorlds);
         }
 
         console.log("DEBUG: Manifest and world data loaded.");
@@ -378,13 +379,15 @@ async function loadAllData() {
         const filteredRaids = loadedRaids.filter(Boolean);
         
         let combinedData = {};
-        // Combine dynamic data with mock activity data from data-core.js
+        // Start with the mock activity data defined in data-core.js
         Object.assign(combinedData, activityData); 
         
         filteredDungeons.forEach(d => { combinedData[d.name] = d.data; });
         filteredRaids.forEach(r => { combinedData[r.name] = r.data; });
 
-        activityData = combinedData;
+        // Overwrite the activityData constant properties with the combined data
+        Object.assign(activityData, combinedData);
+        
         console.log("DEBUG: Successfully loaded, sorted, and combined all dynamic activity data.");
 
     } catch (error) {
@@ -608,9 +611,9 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
         filterAndShowDenominations();
     }
     
-    // The fix for the ReferenceError is here: corrected function name in the focus listener
+    // The previous fix for the ReferenceError remains here (filterAndShowDenominations)
     inputEl.addEventListener('input', debounce(filterAndShowDenominations, 300));
-    inputEl.addEventListener('focus', handleDenominationFocus); // Corrected this line
+    inputEl.addEventListener('focus', handleDenominationFocus);
     inputEl.addEventListener('blur', handleDenominationBlur);
 }
 
@@ -645,6 +648,7 @@ document.addEventListener('click', (event) => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DEBUG: DOM fully loaded. Initializing script.");
 
+    // The functions below now use the global constants defined in data-core.js
     loadAllData().then(() => {
         console.log("DEBUG: Data loading complete. Setting up UI.");
         switchTab('rankup');
@@ -678,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
         etaInputs.forEach(input => input.addEventListener('input', debounce(calculateEnergyETA, 300)));
         document.getElementById('clickerSpeedETA').addEventListener('change', calculateEnergyETA);
         
-        // --- Load Saved Data ---
+        // --- Load Saved Data ---\
         loadRankUpData();
         loadETAData();
     });
