@@ -58,8 +58,8 @@
 
     <div class="w-full max-w-2xl mx-auto">
         <header class="text-center mb-8">
-            <h1 class="anime-title text-4xl md:text-5xl font-bold mb-2">Aiden's Anime Eternal</h1>
-            <p class="text-lg text-gray-300">Calculator</p>
+            <h1 class="anime-title text-4xl md:text-5xl font-bold mb-2">Anime Eternal Calculator</h1>
+            <p class="text-lg text-gray-300">Coded By: AidenCharming & Ray</p>
         </header>
 
         <main class="calculator-card rounded-2xl p-6 md:p-8">
@@ -84,7 +84,7 @@
                 <div>
                     <label for="rankInput" class="block mb-2 text-sm font-medium">Select Target Rank</label>
                     <div class="relative">
-                        <input type="text" id="rankInput" class="input-field w-full p-3 rounded-lg" placeholder="Type to search for a rank..." autocomplete="off">
+                        <input type="text" id="rankInput" class="input-field w-full p-3 rounded-lg" placeholder="e.g., 109" autocomplete="off">
                         <input type="hidden" id="rankSelect" value="">
                         <div id="rankList" class="search-list absolute z-10 w-full bg-[#131320] border border-[#3a3a5a] rounded-lg mt-1 max-h-48 overflow-y-auto hidden"></div>
                     </div>
@@ -121,7 +121,7 @@
                 </div>
             </div>
 
-            <!-- Panel: Energy ETA -->
+            <!-- Panel: Target Energy ETA -->
             <div id="panel-eta" class="hidden space-y-6">
                 <div class="flex items-center justify-center space-x-4 py-2">
                     <span class="text-gray-300 text-sm">Slow Clicker</span>
@@ -131,7 +131,7 @@
                     </label>
                     <span class="text-gray-300 text-sm">Fast Clicker</span>
                 </div>
-                <div>
+                 <div>
                     <label for="currentEnergyETA" class="block mb-2 text-sm font-medium">Your Current Energy</label>
                     <div class="flex space-x-2">
                         <input type="number" id="currentEnergyETA" class="input-field w-2/3 p-3 rounded-lg" placeholder="e.g., 5000">
@@ -145,7 +145,7 @@
                 <div>
                     <label for="targetEnergyETA" class="block mb-2 text-sm font-medium">Your Target Energy</label>
                     <div class="flex space-x-2">
-                        <input type="number" id="targetEnergyETA" class="input-field w-2/3 p-3 rounded-lg" placeholder="e.g., 100">
+                        <input type="number" id="targetEnergyETA" class="input-field w-2/3 p-3 rounded-lg" placeholder="e.g., 10000">
                         <div class="relative w-1/3">
                             <input type="text" id="targetEnergyETADenominationInput" class="input-field w-full p-3 rounded-lg" placeholder="e.g., M" autocomplete="off">
                             <input type="hidden" id="targetEnergyETADenominationValue" value="1">
@@ -165,7 +165,7 @@
                     </div>
                 </div>
                 <div class="result-box p-4 rounded-lg text-center">
-                    <p class="text-gray-400">Time to Target Energy:</p>
+                    <p class="text-gray-400">Time to target energy:</p>
                     <p id="etaResult" class="text-2xl font-bold text-orange-400">0s</p>
                 </div>
             </div>
