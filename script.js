@@ -31,15 +31,10 @@ function formatNumber(num) {
     return num.toLocaleString();
 }
 
-// --- This will be defined inside DOMContentLoaded now ---
+// Global variable to hold all merged raid/dungeon data
 let activityData = {};
 
-
 // --- LocalStorage Save/Load Functions ---
-
-/**
- * Saves the current state of the Rank Up tab to localStorage.
- */
 function saveRankUpData() {
     try {
         localStorage.setItem('ae_rankSelect', document.getElementById('rankSelect').value);
@@ -55,12 +50,8 @@ function saveRankUpData() {
     }
 }
 
-/**
- * Loads the saved state for the Rank Up tab from localStorage.
- */
 function loadRankUpData() {
     try {
-        console.log("DEBUG: Attempting to load RankUp data...");
         const rankSelect = localStorage.getItem('ae_rankSelect');
         if (rankSelect) document.getElementById('rankSelect').value = rankSelect;
 
@@ -83,12 +74,10 @@ function loadRankUpData() {
         if (energyPerClickDenomValue) document.getElementById('energyPerClickDenominationValue').value = energyPerClickDenomValue;
 
         const clickerSpeed = localStorage.getItem('ae_clickerSpeed');
-        if (clickerSpeed !== null) { // Check for null in case it was never set
+        if (clickerSpeed !== null) {
             document.getElementById('clickerSpeed').checked = (clickerSpeed === 'true');
         }
         
-        console.log("DEBUG: RankUp data loaded. Triggering calculations.");
-        // --- After loading, update the UI calculations ---
         displayRankRequirement();
         calculateRankUp();
         
@@ -99,7 +88,6 @@ function loadRankUpData() {
 
 
 // --- Calculator Logics ---
-
 function calculateTTK() {
     const enemyHealth = getNumberValue('enemyHealth');
     const dpsInput = getNumberValue('yourDPS');
@@ -123,7 +111,9 @@ function calculateTTK() {
 
 function populateRankDropdown() {
     const rankSelect = document.getElementById('rankSelect');
+    
     const rankKeys = Object.keys(rankRequirements).sort((a, b) => parseInt(a) - parseInt(b));
+
     for (const rank of rankKeys) {
         const option = document.createElement('option');
         option.value = rank;
@@ -141,7 +131,6 @@ function displayRankRequirement() {
         energyForRankFormatted.innerText = 'Select a rank to see requirement';
     }
 }
-
 
 function calculateRankUp() {
     const isFastClicker = document.getElementById('clickerSpeed').checked;
@@ -233,8 +222,70 @@ function displayEnemyHealth() {
     calculateTTK();
 }
 
+async function loadAllData() {
+    console.log("DEBUG: Starting to load all activity data...");
+
+    // This list is now based on your screenshots.
+    const raidFiles = [
+        'Cursed Raid.json', 'Dragon Raid.json', 'Ghoul Raid.json', 'Gleam Raid.json',
+        'Green Planet Raid.json', 'Hollow Raid.json', 'Leaf Raid.json', 'Mundo Raid.json',
+        'Netherworld Defense.json', 'Pokita Defense.json', 'Progression 2 Raid.json',
+        'Progression Raid.json', 'Restaurant Raid.json', 'Sin Raid.json', 'Titan Defense.json',
+        'Tournament Raid.json'
+    ];
+    
+    const dungeonFiles = [
+        'Crazy Dungeon.json', 'Easy Dungeon.json', 'Hard Dungeon.json', 'Insane Dungeon.json',
+        'Kaiju Base Dungeon.json', 'Medium Dungeon.json', 'Nightmare Dungeon.json', 'Suffering Dungeon.json'
+    ];
+
+    const raidPromises = raidFiles.map(file => 
+        fetch(`raids/${file}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => ({ name: file.replace('.json', ''), data }))
+            .catch(error => console.error(`Error loading raid ${file}:`, error))
+    );
+
+    const dungeonPromises = dungeonFiles.map(file => 
+        fetch(`dungeons/${file}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => ({ name: file.replace('.json', ''), data }))
+            .catch(error => console.error(`Error loading dungeon ${file}:`, error))
+    );
+
+    try {
+        const loadedDungeons = (await Promise.all(dungeonPromises)).filter(Boolean);
+        const loadedRaids = (await Promise.all(raidPromises)).filter(Boolean);
+
+        // Sort each list alphabetically by name
+        loadedDungeons.sort((a, b) => a.name.localeCompare(b.name));
+        loadedRaids.sort((a, b) => a.name.localeCompare(b.name));
+
+        let combinedData = {};
+        
+        // Add sorted dungeons first
+        loadedDungeons.forEach(d => { combinedData[d.name] = d.data; });
+        // Then add sorted raids
+        loadedRaids.forEach(r => { combinedData[r.name] = r.data; });
+
+        activityData = combinedData;
+        console.log("DEBUG: Successfully loaded, sorted, and combined activity data:", activityData);
+    } catch (error) {
+        console.error("Fatal error loading activity data:", error);
+    }
+}
+
+
 function populateActivityDropdown() {
     const select = document.getElementById('activitySelect');
+    select.innerHTML = '<option value="">-- Select an Activity --</option>';
+    
     Object.keys(activityData).forEach(name => {
         const option = document.createElement('option');
         option.value = name;
@@ -255,9 +306,9 @@ function handleActivityChange() {
 
     document.getElementById('activityTimeLimit').value = activity.timeLimit;
     
-    if (activity.type === 'raid') {
+    if (activity.type === 'raid' && activity.healthMultiplier) {
         resultLabel.innerText = 'Estimated Max Wave:';
-    } else { // dungeon
+    } else {
         resultLabel.innerText = 'Estimated Max Room:';
     }
     calculateMaxStage();
@@ -283,7 +334,7 @@ function calculateMaxStage() {
     const maxDamageInTime = yourDPS * timeLimit;
     let completedStage = 0;
 
-    if (activity.type === 'raid' && activity.baseHealth) {
+    if (activity.type === 'raid' && activity.healthMultiplier) {
         let currentHealth = activity.baseHealth;
         for (let i = 1; i <= activity.maxStages; i++) {
             const totalWaveHealth = currentHealth * 5;
@@ -293,10 +344,10 @@ function calculateMaxStage() {
             completedStage = i;
             currentHealth *= activity.healthMultiplier;
         }
-    } else if (activity.enemies) { // dungeon or leaf raid with 'enemies'
+    } else {
         for (let i = 1; i <= activity.maxStages; i++) {
             const roomHealth = activity.enemies[`Room ${i}`];
-            if (!roomHealth || maxDamageInTime < roomHealth) {
+            if (!roomHealth || maxDamageInTime < parseFloat(roomHealth)) {
                 break;
             }
             completedStage = i;
@@ -345,7 +396,6 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
     inputEl.addEventListener('focus', filterAndShowDenominations);
 }
 
-// Hide dropdown when clicking anywhere else
 document.addEventListener('click', (event) => {
     const allLists = document.querySelectorAll('[id$="DenominationList"]');
     let clickedInside = false;
@@ -369,43 +419,36 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DEBUG: DOM fully loaded. Initializing script.");
-    
-    // --- FIX: Combine data sources here, after they are loaded ---
-    console.log("DEBUG: Combining raid and dungeon data...");
-    activityData = { ...dungeonData, ...raidData }; // <-- THE FIX IS HERE
-    console.log("DEBUG: Combined activityData object:", activityData);
 
+    loadAllData().then(() => {
+        console.log("DEBUG: Data loading complete. Setting up UI.");
+        switchTab('rankup');
+        populateRankDropdown();
+        populateWorldDropdown();
+        populateActivityDropdown();
 
-    switchTab('rankup');
-    populateRankDropdown();
-    populateWorldDropdown();
-    populateActivityDropdown();
+        setupDenominationSearch('dpsDenominationInput', 'dpsDenominationValue', 'dpsDenominationList', calculateTTK);
+        setupDenominationSearch('dpsActivityDenominationInput', 'dpsActivityDenominationValue', 'dpsActivityDenominationList', calculateMaxStage);
+        setupDenominationSearch('currentEnergyDenominationInput', 'currentEnergyDenominationValue', 'currentEnergyDenominationList', calculateRankUp);
+        setupDenominationSearch('energyPerClickDenominationInput', 'energyPerClickDenominationValue', 'energyPerClickDenominationList', calculateRankUp);
+        
+        const rankUpInputs = [document.getElementById('clickerSpeed'), document.getElementById('currentEnergy'), document.getElementById('energyPerClick')];
+        rankUpInputs.forEach(input => {
+            const eventType = input.type === 'checkbox' ? 'change' : 'input';
+            input.addEventListener(eventType, calculateRankUp);
+        });
 
-    // Setup searchable dropdowns
-    setupDenominationSearch('dpsDenominationInput', 'dpsDenominationValue', 'dpsDenominationList', calculateTTK);
-    setupDenominationSearch('dpsActivityDenominationInput', 'dpsActivityDenominationValue', 'dpsActivityDenominationList', calculateMaxStage);
-    setupDenominationSearch('currentEnergyDenominationInput', 'currentEnergyDenominationValue', 'currentEnergyDenominationList', calculateRankUp);
-    setupDenominationSearch('energyPerClickDenominationInput', 'energyPerClickDenominationValue', 'energyPerClickDenominationList', calculateRankUp);
-    
-    // Setup automatic calculation listeners
-    const rankUpInputs = [document.getElementById('clickerSpeed'), document.getElementById('rankSelect'), document.getElementById('currentEnergy'), document.getElementById('energyPerClick')];
-    rankUpInputs.forEach(input => {
-        const eventType = (input.type === 'checkbox' || input.tagName === 'SELECT') ? 'change' : 'input';
-        input.addEventListener(eventType, calculateRankUp);
+        const ttkInputs = [document.getElementById('yourDPS')];
+        ttkInputs.forEach(input => { input.addEventListener('input', calculateTTK); });
+        
+        const activityInputs = [document.getElementById('yourDPSActivity'), document.getElementById('activityTimeLimit')];
+        activityInputs.forEach(input => {
+            input.addEventListener('input', calculateMaxStage);
+        });
+
+        loadRankUpData();
     });
-
-    const ttkInputs = [document.getElementById('yourDPS')];
-    ttkInputs.forEach(input => { input.addEventListener('input', calculateTTK); });
-    
-    const activityInputs = [document.getElementById('yourDPSActivity'), document.getElementById('activityTimeLimit')];
-     activityInputs.forEach(input => {
-        input.addEventListener('input', calculateMaxStage);
-    });
-
-    // Load saved data *after* all dropdowns and listeners are set up
-    loadRankUpData();
 });
 

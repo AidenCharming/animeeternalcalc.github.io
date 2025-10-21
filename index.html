@@ -182,13 +182,13 @@
 
         </main>
     </div>
-    <!-- Load all data files FIRST -->
+    
+    <!-- Load static data files -->
     <script src="data-core.js"></script>
     <script src="data-worlds.js"></script>
-    <script src="data-raids.js"></script>
-    <script src="data-dungeons.js"></script>
 
-    <!-- Load the main logic file LAST -->
+    <!-- Load the main logic file LAST. It will fetch the raid/dungeon JSON files. -->
     <script src="script.js"></script>
 </body>
 </html>
+
