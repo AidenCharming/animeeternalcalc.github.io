@@ -40,6 +40,7 @@ let activityData = {};
 function saveRankUpData() {
     try {
         localStorage.setItem('ae_rankSelect', document.getElementById('rankSelect').value);
+        localStorage.setItem('ae_rankInput', document.getElementById('rankInput').value);
         localStorage.setItem('ae_currentEnergy', document.getElementById('currentEnergy').value);
         localStorage.setItem('ae_currentEnergyDenomInput', document.getElementById('currentEnergyDenominationInput').value);
         localStorage.setItem('ae_currentEnergyDenomValue', document.getElementById('currentEnergyDenominationValue').value);
@@ -56,6 +57,9 @@ function loadRankUpData() {
     try {
         const rankSelect = localStorage.getItem('ae_rankSelect');
         if (rankSelect) document.getElementById('rankSelect').value = rankSelect;
+        
+        const rankInput = localStorage.getItem('ae_rankInput');
+        if (rankInput) document.getElementById('rankInput').value = rankInput;
 
         const currentEnergy = localStorage.getItem('ae_currentEnergy');
         if (currentEnergy) document.getElementById('currentEnergy').value = currentEnergy;
@@ -109,18 +113,6 @@ function calculateTTK() {
     if (minutes > 0 || hours > 0) resultString += `${minutes}m `;
     resultString += `${seconds}s`;
     document.getElementById('ttkResult').innerText = resultString.trim();
-}
-
-function populateRankDropdown() {
-    const rankSelect = document.getElementById('rankSelect');
-    const rankKeys = Object.keys(rankRequirements).sort((a, b) => parseInt(a) - parseInt(b));
-
-    for (const rank of rankKeys) {
-        const option = document.createElement('option');
-        option.value = rank;
-        option.innerText = `Rank ${rank}`;
-        rankSelect.appendChild(option);
-    }
 }
 
 function displayRankRequirement() {
@@ -226,7 +218,6 @@ function displayEnemyHealth() {
 async function loadAllData() {
     console.log("DEBUG: Starting to load all data...");
 
-    // First, fetch the manifest file that lists all other data files.
     const manifestPromise = fetch('data-manifest.json')
         .then(response => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}. Make sure you have run the create_manifest.py script.`);
@@ -234,11 +225,9 @@ async function loadAllData() {
         })
         .catch(error => {
             console.error('CRITICAL: Could not load data-manifest.json.', error);
-            // Return a default structure to prevent further crashes
             return { raids: [], dungeons: [] };
         });
 
-    // Also fetch the world data at the same time.
     const worldPromise = fetch('data-worlds.json')
         .then(response => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -246,16 +235,14 @@ async function loadAllData() {
         })
         .catch(error => {
             console.error('Error loading world data:', error);
-            return {}; // Return empty object on failure
+            return {};
         });
 
     try {
-        // Wait for both the manifest and world data to be loaded.
         const [manifest, loadedWorlds] = await Promise.all([manifestPromise, worldPromise]);
         worldData = loadedWorlds;
         console.log("DEBUG: Manifest and world data loaded.");
 
-        // Now, use the manifest to fetch all raids and dungeons dynamically.
         const raidPromises = manifest.raids.map(file => 
             fetch(`raids/${file}`)
                 .then(response => response.ok ? response.json() : Promise.reject(`Failed to load ${file}`))
@@ -270,7 +257,6 @@ async function loadAllData() {
                 .catch(error => { console.error(`Error loading dungeon ${file}:`, error); return null; })
         );
         
-        // Wait for all the individual raid/dungeon files to load.
         const [loadedDungeons, loadedRaids] = await Promise.all([
             Promise.all(dungeonPromises),
             Promise.all(raidPromises)
@@ -295,7 +281,6 @@ function populateActivityDropdown() {
     const select = document.getElementById('activitySelect');
     select.innerHTML = '<option value="">-- Select an Activity --</option>';
     
-    // Sort the keys of the combined activity data alphabetically before populating.
     const sortedActivityNames = Object.keys(activityData).sort((a, b) => a.localeCompare(b));
 
     sortedActivityNames.forEach(name => {
@@ -369,7 +354,52 @@ function calculateMaxStage() {
     resultEl.innerText = `${completedStage} / ${activity.maxStages}`;
 }
 
-// --- Searchable Denomination Dropdown Logic ---
+// --- Searchable Dropdown Logic ---
+function setupRankSearch(inputId, valueId, listId) {
+    const inputEl = document.getElementById(inputId);
+    const valueEl = document.getElementById(valueId);
+    const listEl = document.getElementById(listId);
+
+    if (!inputEl || !valueEl || !listEl) {
+        console.error("Missing elements for setupRankSearch:", inputId);
+        return;
+    }
+
+    const allRanks = Object.keys(rankRequirements).sort((a, b) => parseInt(a) - parseInt(b));
+
+    function filterAndShowRanks() {
+        const filterText = inputEl.value.toLowerCase().replace('rank', '').trim();
+        const filtered = allRanks.filter(rank => rank.startsWith(filterText));
+        renderRanksList(filtered);
+    }
+
+    function renderRanksList(list) {
+        listEl.innerHTML = '';
+        if (list.length === 0) {
+            listEl.classList.add('hidden');
+            return;
+        }
+        list.forEach(rank => {
+            const item = document.createElement('div');
+            item.className = 'p-2 hover:bg-[#3a3a5a] cursor-pointer text-sm';
+            item.textContent = `Rank ${rank}`;
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                inputEl.value = `Rank ${rank}`;
+                valueEl.value = rank;
+                listEl.classList.add('hidden');
+                displayRankRequirement();
+                calculateRankUp();
+            });
+            listEl.appendChild(item);
+        });
+        listEl.classList.remove('hidden');
+    }
+
+    inputEl.addEventListener('input', filterAndShowRanks);
+    inputEl.addEventListener('focus', filterAndShowRanks);
+}
+
 function setupDenominationSearch(inputId, valueId, listId, callback) {
     const inputEl = document.getElementById(inputId);
     const valueEl = document.getElementById(valueId);
@@ -409,7 +439,7 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
 }
 
 document.addEventListener('click', (event) => {
-    const allLists = document.querySelectorAll('[id$="DenominationList"]');
+    const allLists = document.querySelectorAll('.search-list');
     let clickedInside = false;
     const path = event.composedPath ? event.composedPath() : (function buildPath(node) {
         const p = [];
@@ -419,11 +449,11 @@ document.addEventListener('click', (event) => {
     })(event.target);
 
     for (const el of path) {
-        if (!el) continue;
-        const nodeName = (el.nodeName || '').toUpperCase();
-        const id = el.id || '';
-        if (nodeName === 'INPUT' && id.endsWith('DenominationInput')) { clickedInside = true; break; }
-        if (nodeName === 'DIV' && id.endsWith('DenominationList')) { clickedInside = true; break; }
+        if (!el || !el.classList) continue;
+        if (el.classList.contains('input-field') || el.classList.contains('search-list')) {
+            clickedInside = true;
+            break;
+        }
     }
 
     if (!clickedInside) {
@@ -437,7 +467,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAllData().then(() => {
         console.log("DEBUG: Data loading complete. Setting up UI.");
         switchTab('rankup');
-        populateRankDropdown();
+        
+        setupRankSearch('rankInput', 'rankSelect', 'rankList');
         populateWorldDropdown();
         populateActivityDropdown();
 
