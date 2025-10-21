@@ -605,22 +605,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Event Listeners for Inputs ---
         const rankUpInputs = [document.getElementById('currentEnergy'), document.getElementById('energyPerClick')];
-        rankUpInputs.forEach(input => input.addEventListener('input', calculateRankUp));
+        rankUpInputs.forEach(input => input.addEventListener('input', debounce(calculateRankUp, 300)));
 
         const ttkInputs = [document.getElementById('yourDPS')];
-        ttkInputs.forEach(input => { input.addEventListener('input', calculateTTK); });
+        ttkInputs.forEach(input => { input.addEventListener('input', debounce(calculateTTK, 300)); });
         
         const activityInputs = [document.getElementById('yourDPSActivity'), document.getElementById('activityTimeLimit')];
-        activityInputs.forEach(input => input.addEventListener('input', calculateMaxStage));
+        activityInputs.forEach(input => input.addEventListener('input', debounce(calculateMaxStage, 300)));
         
         const etaInputs = [document.getElementById('currentEnergyETA'), document.getElementById('targetEnergyETA'), document.getElementById('energyPerClickETA')];
-        etaInputs.forEach(input => input.addEventListener('input', calculateEnergyETA));
+        etaInputs.forEach(input => input.addEventListener('input', debounce(calculateEnergyETA, 300)));
 
         // --- Load Saved Data ---
         loadRankUpData();
         loadETAData();
     });
 });
+
 
 
 
