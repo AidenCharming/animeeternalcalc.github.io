@@ -16,7 +16,9 @@ function switchTab(activeTab) {
 
 // --- Helper Function ---
 function getNumberValue(id) {
-    return parseFloat(document.getElementById(id).value) || 0;
+    const val = parseFloat(document.getElementById(id).value) || 0;
+    console.log(`Value from #${id}:`, val);
+    return val;
 }
 
 function formatNumber(num) {
@@ -31,8 +33,8 @@ function formatNumber(num) {
     return num.toLocaleString();
 }
 
-// --- Combine Raid and Dungeon data into one object ---
-const activityData = { ...raidData, ...dungeonData };
+// --- This will be defined inside DOMContentLoaded now ---
+let activityData = {};
 
 
 // --- LocalStorage Save/Load Functions ---
@@ -50,6 +52,7 @@ function saveRankUpData() {
         localStorage.setItem('ae_energyPerClickDenomInput', document.getElementById('energyPerClickDenominationInput').value);
         localStorage.setItem('ae_energyPerClickDenomValue', document.getElementById('energyPerClickDenominationValue').value);
         localStorage.setItem('ae_clickerSpeed', document.getElementById('clickerSpeed').checked);
+        console.log("RankUp data saved.");
     } catch (e) {
         console.error("Failed to save data to localStorage", e);
     }
@@ -60,6 +63,7 @@ function saveRankUpData() {
  */
 function loadRankUpData() {
     try {
+        console.log("Attempting to load RankUp data...");
         const rankSelect = localStorage.getItem('ae_rankSelect');
         if (rankSelect) document.getElementById('rankSelect').value = rankSelect;
 
@@ -86,6 +90,7 @@ function loadRankUpData() {
             document.getElementById('clickerSpeed').checked = (clickerSpeed === 'true');
         }
         
+        console.log("RankUp data loaded. Triggering calculations.");
         // --- After loading, update the UI calculations ---
         displayRankRequirement();
         calculateRankUp();
@@ -151,11 +156,21 @@ function displayRankRequirement() {
  * MODIFIED: Saves data to localStorage on every calculation.
  */
 function calculateRankUp() {
+    console.log("--- Calculating Rank Up ---");
     const isFastClicker = document.getElementById('clickerSpeed').checked;
-    const currentEnergy = (getNumberValue('currentEnergy') || 0) * (parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1);
-    const energyPerClick = (getNumberValue('energyPerClick') || 0) * (parseFloat(document.getElementById('energyPerClickDenominationValue').value) || 1);
+    const currentEnergyValue = getNumberValue('currentEnergy');
+    const currentEnergyMultiplier = parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1;
+    const currentEnergy = currentEnergyValue * currentEnergyMultiplier;
+    
+    const energyPerClickValue = getNumberValue('energyPerClick');
+    const energyPerClickMultiplier = parseFloat(document.getElementById('energyPerClickDenominationValue').value) || 1;
+    const energyPerClick = energyPerClickValue * energyPerClickMultiplier;
+    
     const selectedRank = document.getElementById('rankSelect').value;
     const energyForRank = rankRequirements[selectedRank] || 0;
+
+    console.log({isFastClicker, currentEnergy, energyPerClick, selectedRank, energyForRank});
+
 
     if (!energyForRank) {
         document.getElementById('rankUpResult').innerText = 'Select a rank';
@@ -271,6 +286,7 @@ function handleActivityChange() {
 }
 
 function calculateMaxStage() {
+    console.log("--- Calculating Max Stage ---");
     const selection = document.getElementById('activitySelect').value;
     if (!selection) {
         document.getElementById('activityResult').innerText = '0 / 0';
@@ -278,9 +294,13 @@ function calculateMaxStage() {
     }
 
     const activity = activityData[selection];
-    const yourDPS = (getNumberValue('yourDPSActivity') || 0) * (parseFloat(document.getElementById('dpsActivityDenominationValue').value) || 1);
+    const dpsValue = getNumberValue('yourDPSActivity');
+    const dpsMultiplier = parseFloat(document.getElementById('dpsActivityDenominationValue').value) || 1;
+    const yourDPS = dpsValue * dpsMultiplier;
     const timeLimit = getNumberValue('activityTimeLimit');
     const resultEl = document.getElementById('activityResult');
+
+    console.log({ selection, activity, yourDPS, timeLimit });
 
     if (yourDPS <= 0 || timeLimit <= 0) {
         resultEl.innerText = `0 / ${activity.maxStages}`;
@@ -290,7 +310,7 @@ function calculateMaxStage() {
     const maxDamageInTime = yourDPS * timeLimit;
     let completedStage = 0;
 
-    if (activity.type === 'raid') {
+    if (activity.type === 'raid' && activity.baseHealth) {
         let currentHealth = activity.baseHealth;
         for (let i = 1; i <= activity.maxStages; i++) {
             const totalWaveHealth = currentHealth * 5;
@@ -300,7 +320,7 @@ function calculateMaxStage() {
             completedStage = i;
             currentHealth *= activity.healthMultiplier;
         }
-    } else { // dungeon or leaf raid with 'enemies'
+    } else if (activity.enemies) { // dungeon or leaf raid with 'enemies'
         for (let i = 1; i <= activity.maxStages; i++) {
             const roomHealth = activity.enemies[`Room ${i}`];
             if (!roomHealth || maxDamageInTime < roomHealth) {
@@ -311,6 +331,7 @@ function calculateMaxStage() {
     }
     
     resultEl.innerText = `${completedStage} / ${activity.maxStages}`;
+    console.log(`Calculation result: ${completedStage} / ${activity.maxStages}`);
 }
 
 // --- Searchable Denomination Dropdown Logic ---
@@ -383,6 +404,14 @@ document.addEventListener('click', (event) => {
  * MODIFIED: Loads saved data on page load.
  */
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM fully loaded. Initializing script.");
+    
+    // --- FIX: Combine data sources here, after they are loaded ---
+    console.log("Combining raid and dungeon data...");
+    activityData = { ...raidData, ...dungeonData };
+    console.log("Combined activityData:", activityData);
+
+
     switchTab('rankup');
     populateRankDropdown();
     populateWorldDropdown();
@@ -395,9 +424,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDenominationSearch('energyPerClickDenominationInput', 'energyPerClickDenominationValue', 'energyPerClickDenominationList', calculateRankUp);
     
     // Setup automatic calculation listeners
-    const rankUpInputs = [document.getElementById('clickerSpeed'), document.getElementById('currentEnergy'), document.getElementById('energyPerClick')];
+    const rankUpInputs = [document.getElementById('clickerSpeed'), document.getElementById('rankSelect'), document.getElementById('currentEnergy'), document.getElementById('energyPerClick')];
     rankUpInputs.forEach(input => {
-        const eventType = input.type === 'checkbox' ? 'change' : 'input';
+        const eventType = (input.type === 'checkbox' || input.tagName === 'SELECT') ? 'change' : 'input';
         input.addEventListener(eventType, calculateRankUp);
     });
 
