@@ -375,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- FIX: Combine data sources here, after they are loaded ---
     console.log("DEBUG: Combining raid and dungeon data...");
-    activityData = { ...raidData, ...dungeonData };
+    activityData = { ...dungeonData, ...raidData }; // <-- THE FIX IS HERE
     console.log("DEBUG: Combined activityData object:", activityData);
 
 
