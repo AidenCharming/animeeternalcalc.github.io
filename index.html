@@ -193,6 +193,17 @@
     
     <!-- The main logic file will now fetch all JSON data, including worlds. -->
     <script src="script.js"></script>
+
+    <!-- Ko-fi Floating Widget -->
+    <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+    <script>
+      // IMPORTANT: Replace 'YOUR_KOFI_USERNAME' with your actual Ko-fi username
+      kofiWidgetOverlay.draw('YOUR_KOFI_USERNAME', {
+        'type': 'floating-chat',
+        'floating-chat.donateButton.text': 'Support Me',
+        'floating-chat.donateButton.background-color': '#5cb85c', // A friendly green color
+        'floating-chat.donateButton.text-color': '#fff'
+      });
+    </script>
 </body>
 </html>
-
