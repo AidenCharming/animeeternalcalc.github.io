@@ -36,7 +36,6 @@
             if (et.indexOf('2g') !== -1 || et.indexOf('3g') !== -1) return true;
           }
           if (nav.deviceMemory && nav.deviceMemory <= 2) return true;
-          if (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) return true;
           if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
         }catch(e){}
         return false;
@@ -238,7 +237,7 @@
         </main>
     </div>
     
-    <!-- Load static data file -->
+    <!-- Load static data files -->
     <script src="data-core.js"></script>
     
     <!-- The main logic file will now fetch all JSON data, including worlds. -->
@@ -257,4 +256,3 @@
     </script>
 </body>
 </html>
-
