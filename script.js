@@ -16,9 +16,7 @@ function switchTab(activeTab) {
 
 // --- Helper Function ---
 function getNumberValue(id) {
-    const val = parseFloat(document.getElementById(id).value) || 0;
-    console.log(`Value from #${id}:`, val);
-    return val;
+    return parseFloat(document.getElementById(id).value) || 0;
 }
 
 function formatNumber(num) {
@@ -52,7 +50,6 @@ function saveRankUpData() {
         localStorage.setItem('ae_energyPerClickDenomInput', document.getElementById('energyPerClickDenominationInput').value);
         localStorage.setItem('ae_energyPerClickDenomValue', document.getElementById('energyPerClickDenominationValue').value);
         localStorage.setItem('ae_clickerSpeed', document.getElementById('clickerSpeed').checked);
-        console.log("RankUp data saved.");
     } catch (e) {
         console.error("Failed to save data to localStorage", e);
     }
@@ -63,7 +60,7 @@ function saveRankUpData() {
  */
 function loadRankUpData() {
     try {
-        console.log("Attempting to load RankUp data...");
+        console.log("DEBUG: Attempting to load RankUp data...");
         const rankSelect = localStorage.getItem('ae_rankSelect');
         if (rankSelect) document.getElementById('rankSelect').value = rankSelect;
 
@@ -90,7 +87,7 @@ function loadRankUpData() {
             document.getElementById('clickerSpeed').checked = (clickerSpeed === 'true');
         }
         
-        console.log("RankUp data loaded. Triggering calculations.");
+        console.log("DEBUG: RankUp data loaded. Triggering calculations.");
         // --- After loading, update the UI calculations ---
         displayRankRequirement();
         calculateRankUp();
@@ -124,16 +121,9 @@ function calculateTTK() {
     document.getElementById('ttkResult').innerText = resultString.trim();
 }
 
-/**
- * MODIFIED: Populates the rank dropdown dynamically from the rankRequirements object.
- */
 function populateRankDropdown() {
     const rankSelect = document.getElementById('rankSelect');
-    
-    // Get all the rank keys from your data and sort them numerically
     const rankKeys = Object.keys(rankRequirements).sort((a, b) => parseInt(a) - parseInt(b));
-
-    // Loop through the sorted keys and create an option for each one
     for (const rank of rankKeys) {
         const option = document.createElement('option');
         option.value = rank;
@@ -152,29 +142,17 @@ function displayRankRequirement() {
     }
 }
 
-/**
- * MODIFIED: Saves data to localStorage on every calculation.
- */
+
 function calculateRankUp() {
-    console.log("--- Calculating Rank Up ---");
     const isFastClicker = document.getElementById('clickerSpeed').checked;
-    const currentEnergyValue = getNumberValue('currentEnergy');
-    const currentEnergyMultiplier = parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1;
-    const currentEnergy = currentEnergyValue * currentEnergyMultiplier;
-    
-    const energyPerClickValue = getNumberValue('energyPerClick');
-    const energyPerClickMultiplier = parseFloat(document.getElementById('energyPerClickDenominationValue').value) || 1;
-    const energyPerClick = energyPerClickValue * energyPerClickMultiplier;
-    
+    const currentEnergy = (getNumberValue('currentEnergy') || 0) * (parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1);
+    const energyPerClick = (getNumberValue('energyPerClick') || 0) * (parseFloat(document.getElementById('energyPerClickDenominationValue').value) || 1);
     const selectedRank = document.getElementById('rankSelect').value;
     const energyForRank = rankRequirements[selectedRank] || 0;
 
-    console.log({isFastClicker, currentEnergy, energyPerClick, selectedRank, energyForRank});
-
-
     if (!energyForRank) {
         document.getElementById('rankUpResult').innerText = 'Select a rank';
-        saveRankUpData(); // Save state
+        saveRankUpData();
         return;
     }
 
@@ -185,12 +163,12 @@ function calculateRankUp() {
 
     if (energyNeeded <= 0) {
         document.getElementById('rankUpResult').innerText = 'Rank Up Ready!';
-        saveRankUpData(); // Save state
+        saveRankUpData();
         return;
     }
     if (energyPerClick <= 0) {
         document.getElementById('rankUpResult').innerText = 'N/A';
-        saveRankUpData(); // Save state
+        saveRankUpData();
         return;
     }
 
@@ -204,7 +182,7 @@ function calculateRankUp() {
     resultString += `${seconds}s`;
     document.getElementById('rankUpResult').innerText = resultString.trim();
 
-    saveRankUpData(); // Save state
+    saveRankUpData();
 }
 
 function populateWorldDropdown() {
@@ -286,7 +264,6 @@ function handleActivityChange() {
 }
 
 function calculateMaxStage() {
-    console.log("--- Calculating Max Stage ---");
     const selection = document.getElementById('activitySelect').value;
     if (!selection) {
         document.getElementById('activityResult').innerText = '0 / 0';
@@ -294,13 +271,9 @@ function calculateMaxStage() {
     }
 
     const activity = activityData[selection];
-    const dpsValue = getNumberValue('yourDPSActivity');
-    const dpsMultiplier = parseFloat(document.getElementById('dpsActivityDenominationValue').value) || 1;
-    const yourDPS = dpsValue * dpsMultiplier;
+    const yourDPS = (getNumberValue('yourDPSActivity') || 0) * (parseFloat(document.getElementById('dpsActivityDenominationValue').value) || 1);
     const timeLimit = getNumberValue('activityTimeLimit');
     const resultEl = document.getElementById('activityResult');
-
-    console.log({ selection, activity, yourDPS, timeLimit });
 
     if (yourDPS <= 0 || timeLimit <= 0) {
         resultEl.innerText = `0 / ${activity.maxStages}`;
@@ -331,7 +304,6 @@ function calculateMaxStage() {
     }
     
     resultEl.innerText = `${completedStage} / ${activity.maxStages}`;
-    console.log(`Calculation result: ${completedStage} / ${activity.maxStages}`);
 }
 
 // --- Searchable Denomination Dropdown Logic ---
@@ -377,7 +349,6 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
 document.addEventListener('click', (event) => {
     const allLists = document.querySelectorAll('[id$="DenominationList"]');
     let clickedInside = false;
-    // Use composedPath when available, otherwise build a simple path via parentNode traversal
     const path = event.composedPath ? event.composedPath() : (function buildPath(node) {
         const p = [];
         let cur = node;
@@ -389,7 +360,6 @@ document.addEventListener('click', (event) => {
         if (!el) continue;
         const nodeName = (el.nodeName || '').toUpperCase();
         const id = el.id || '';
-        // We only consider clicks inside denomination inputs or their dropdown lists
         if (nodeName === 'INPUT' && id.endsWith('DenominationInput')) { clickedInside = true; break; }
         if (nodeName === 'DIV' && id.endsWith('DenominationList')) { clickedInside = true; break; }
     }
@@ -400,16 +370,13 @@ document.addEventListener('click', (event) => {
 });
 
 // --- Initialization ---
-/**
- * MODIFIED: Loads saved data on page load.
- */
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded. Initializing script.");
+    console.log("DEBUG: DOM fully loaded. Initializing script.");
     
     // --- FIX: Combine data sources here, after they are loaded ---
-    console.log("Combining raid and dungeon data...");
+    console.log("DEBUG: Combining raid and dungeon data...");
     activityData = { ...raidData, ...dungeonData };
-    console.log("Combined activityData:", activityData);
+    console.log("DEBUG: Combined activityData object:", activityData);
 
 
     switchTab('rankup');
