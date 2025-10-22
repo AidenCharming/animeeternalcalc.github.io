@@ -715,7 +715,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     gachasTitle.innerText = `Gachas (${gachasCompleted} / ${gachasTotal})`;
                 }
                 if (levelersTitle) {
-                    levelersTitle.innerText = `Levelers (${levelersCompleted} / ${levelersTotal})`;
+                    levelersTitle.innerText = `Progressions (${levelersCompleted} / ${levelersTotal})`;
                 }
                 if (ssTitle) {
                     ssTitle.innerText = `SS Quest (${ssCompleted} / ${ssTotal})`;
