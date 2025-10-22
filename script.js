@@ -79,6 +79,7 @@ function loadRankUpData() {
         const currentEnergy = localStorage.getItem('ae_currentEnergy');
         if (currentEnergy) document.getElementById('currentEnergy').value = currentEnergy;
 
+        // FIXED: Added this line to load the saved text
         const currentEnergyDenomInput = localStorage.getItem('ae_currentEnergyDenomInput');
         if (currentEnergyDenomInput) document.getElementById('currentEnergyDenominationInput').value = currentEnergyDenomInput;
 
@@ -88,6 +89,7 @@ function loadRankUpData() {
         const energyPerClick = localStorage.getItem('ae_energyPerClick');
         if (energyPerClick) document.getElementById('energyPerClick').value = energyPerClick;
 
+        // FIXED: Added this line to load the saved text
         const energyPerClickDenomInput = localStorage.getItem('ae_energyPerClickDenomInput');
         if (energyPerClickDenomInput) document.getElementById('energyPerClickDenominationInput').value = energyPerClickDenomInput;
 
@@ -230,11 +232,29 @@ function displayRankRequirement() {
 }
 
 function calculateRankUp() {
+    // ADDED: Debug group
+    console.group("DEBUG: calculateRankUp");
+
     const isFastClicker = document.getElementById('clickerSpeed').checked;
-    const currentEnergy = (getNumberValue('currentEnergy') || 0) * (parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1);
-    const energyPerClick = (getNumberValue('energyPerClick') || 0) * (parseFloat(document.getElementById('energyPerClickDenominationValue').value) || 1);
+    
+    // EDITED: Broke out variables for logging
+    const currentEnergyValue = (getNumberValue('currentEnergy') || 0);
+    const currentEnergyDenom = (parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1);
+    const currentEnergy = currentEnergyValue * currentEnergyDenom;
+
+    // EDITED: Broke out variables for logging
+    const energyPerClickValue = (getNumberValue('energyPerClick') || 0);
+    const energyPerClickDenom = (parseFloat(document.getElementById('energyPerClickDenominationValue').value) || 1);
+    const energyPerClick = energyPerClickValue * energyPerClickDenom;
+
     const selectedRank = document.getElementById('rankSelect').value;
     const energyForRank = rankRequirements[selectedRank] || 0;
+
+    // ADDED: Debug logs
+    console.log("Rank:", selectedRank, "-> Needs:", energyForRank ? energyForRank.toExponential() : "N/A");
+    console.log("Current Energy:", currentEnergyValue, "*", currentEnergyDenom.toExponential(), "=", currentEnergy.toExponential());
+    console.log("Energy per Click:", energyPerClickValue, "*", energyPerClickDenom.toExponential(), "=", energyPerClick.toExponential());
+    console.log("Clicker Speed:", isFastClicker ? "Fast (5.88 CPS)" : "Slow (1.09 CPS)");
 
     if (!energyForRank) {
         document.getElementById('rankUpResult').innerText = 'Select a rank';
@@ -246,6 +266,9 @@ function calculateRankUp() {
     const FAST_CPS = 5.88505;
     const clicksPerSecond = isFastClicker ? FAST_CPS : SLOW_CPS;
     const energyNeeded = energyForRank - currentEnergy;
+
+    // ADDED: Debug log
+    console.log("Energy Needed:", energyNeeded.toExponential());
 
     if (energyNeeded <= 0) {
         document.getElementById('rankUpResult').innerText = 'Rank Up Ready!';
@@ -270,6 +293,12 @@ function calculateRankUp() {
     if (hours > 0 || days > 0) resultString += `${hours}h `;
     if (minutes > 0 || hours > 0 || days > 0) resultString += `${minutes}m `;
     resultString += `${seconds}s`;
+
+    // ADDED: Debug logs
+    console.log("Time (seconds):", timeInSeconds.toExponential());
+    console.log("Result (string):", resultString.trim());
+    console.groupEnd();
+
     document.getElementById('rankUpResult').innerText = resultString.trim();
 
     saveRankUpData();
@@ -867,3 +896,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 });
+
+
+
