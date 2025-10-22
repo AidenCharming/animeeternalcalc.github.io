@@ -256,14 +256,22 @@
                 </div>
             </div>
 
-            <!-- Panel: Checklist -->
+            <!-- ADD THIS ENTIRE NEW PANEL FOR THE CHECKLIST -->
             <div id="panel-checklist" class="hidden space-y-6">
                 <p class="text-center text-gray-300 -mt-2">Your 100% completion progress. Items are saved in your browser.</p>
+                
+                <!-- NEW BUTTON CONTAINER -->
+                <div class="flex justify-center space-x-4">
+                    <button id="check-all-btn" class="text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-full transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400">Check All</button>
+                    <button id="uncheck-all-btn" class="text-xs font-medium bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-full transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-400">Uncheck All</button>
+                </div>
+                <!-- END NEW BUTTON CONTAINER -->
+
                 <!-- Grid container for the checklists -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Column 1: Gachas -->
                     <section>
-                        <h2 id="gachas-title" class="text-xl font-semibold mb-3 text-emerald-400">Gachas (0 / 34)</h2>
+                        <h2 id="gachas-title" class="text-xl font-semibold mb-3 text-emerald-400">Gachas (0 / 36)</h2>
                         <div id="gachas-list" class="space-y-2">
                             <!-- Gachas items will be injected here by JS -->
                         </div>
@@ -271,7 +279,7 @@
 
                     <!-- Column 2: Levelers -->
                     <section>
-                        <h2 id="levelers-title" class="text-xl font-semibold mb-3 text-sky-400">Levelers (0 / 63)</h2>
+                        <h2 id="levelers-title" class="text-xl font-semibold mb-3 text-sky-400">Progressions (0 / 55)</h2>
                         <div id="levelers-list" class="space-y-2">
                             <!-- Levelers items will be injected here by JS -->
                         </div>

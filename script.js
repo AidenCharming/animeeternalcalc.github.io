@@ -842,7 +842,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- ADD ALL THE NEW CHECKLIST LOGIC BELOW ---
 
         // Check if the checklist data is loaded (from data-checklist.js)
+        // --- NEW LOGGING ---
+        console.log("DEBUG: Checking for checklist data...");
         if (typeof checklistGachas !== 'undefined') {
+            // --- NEW LOGGING ---
+            console.log("DEBUG: Checklist data found! Initializing checklist UI...");
+
             const checklistPanel = document.getElementById('panel-checklist');
             const gachasList = document.getElementById('gachas-list');
             const levelersList = document.getElementById('levelers-list');
@@ -854,6 +859,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const ssTitle = document.getElementById('ss-title');
 
             const CHECKLIST_SAVE_KEY = 'ae_checklist_progress';
+
+            // --- NEW HELPER FUNCTION to style checklist items ---
+            function styleChecklistItem(checkbox, isChecked) {
+                const span = checkbox.nextElementSibling;
+                if (span) {
+                    if (isChecked) {
+                        span.style.textDecoration = 'line-through';
+                        span.style.color = '#888';
+                    } else {
+                        span.style.textDecoration = 'none';
+                        span.style.color = 'var(--muted)';
+                    }
+                }
+            }
+            // --- END NEW HELPER FUNCTION ---
 
             // Function to update the checklist titles with completed counts
             function updateChecklistTitles(savedData) {
@@ -891,7 +911,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     gachasTitle.innerText = `Gachas (${gachasCompleted} / ${gachasTotal})`;
                 }
                 if (levelersTitle) {
-                    levelersTitle.innerText = `Levelers (${levelersCompleted} / ${levelersTotal})`;
+                    levelersTitle.innerText = `Progressions (${levelersCompleted} / ${levelersTotal})`;
                 }
                 if (ssTitle) {
                     ssTitle.innerText = `SS Quest (${ssCompleted} / ${ssTotal})`;
@@ -901,6 +921,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Function to load saved data from localStorage
             function loadChecklistData() {
+                // --- NEW LOGGING ---
+                console.log("DEBUG: loadChecklistData() called.");
                 try {
                     const savedData = JSON.parse(localStorage.getItem(CHECKLIST_SAVE_KEY)) || {};
                     populateChecklists(savedData);
@@ -942,18 +964,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const span = document.createElement('span');
                 span.textContent = item.name;
                 
-                if (checkbox.checked) {
-                    span.style.textDecoration = 'line-through';
-                    span.style.color = '#888';
-                }
+                // REMOVED old styling logic from here
 
                 label.appendChild(checkbox);
                 label.appendChild(span);
+
+                // ADDED call to new helper function
+                styleChecklistItem(checkbox, checkbox.checked);
+                
                 return label;
             }
 
             // Function to fill all three lists
             function populateChecklists(savedData) {
+                // --- NEW LOGGING ---
+                console.log("DEBUG: populateChecklists() called.");
                 // Clear existing lists
                 gachasList.innerHTML = '';
                 levelersList.innerHTML = '';
@@ -979,14 +1004,9 @@ document.addEventListener('DOMContentLoaded', () => {
             checklistPanel.addEventListener('change', (e) => {
                 if (e.target.type === 'checkbox') {
                     // Style the label text
-                    const span = e.target.nextElementSibling;
-                    if (e.target.checked) {
-                        span.style.textDecoration = 'line-through';
-                        span.style.color = '#888';
-                    } else {
-                        span.style.textDecoration = 'none';
-                        span.style.color = 'var(--muted)';
-                    }
+                    // REPLACED old styling logic with this:
+                    styleChecklistItem(e.target, e.target.checked);
+                    
                     // Save the new state
                     saveChecklistData();
                 }
@@ -994,14 +1014,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Initial load of checklist data
             loadChecklistData();
+
+            // --- NEW Check/Uncheck All Logic ---
+            const checkAllBtn = document.getElementById('check-all-btn');
+            const uncheckAllBtn = document.getElementById('uncheck-all-btn');
+
+            if (checkAllBtn) {
+                checkAllBtn.addEventListener('click', () => {
+                    const checkboxes = checklistPanel.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(cb => {
+                        cb.checked = true;
+                        styleChecklistItem(cb, true);
+                    });
+                    saveChecklistData(); // Save and update counts
+                });
+            }
+
+            if (uncheckAllBtn) {
+                uncheckAllBtn.addEventListener('click', () => {
+                    const checkboxes = checklistPanel.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(cb => {
+                        cb.checked = false;
+                        styleChecklistItem(cb, false);
+                    });
+                    saveChecklistData(); // Save and update counts
+                });
+            }
+            // --- END NEW Check/Uncheck All Logic ---
+
         } else {
-            console.warn("Checklist data not found. Make sure data-checklist.js is loaded.");
+            // --- NEW LOGGING ---
+            console.warn("DEBUG: Checklist data NOT found. Make sure data-checklist.js is loaded BEFORE script.js.");
         }
         // --- END OF NEW CHECKLIST LOGIC ---
 
     });
 });
-
-
-
 

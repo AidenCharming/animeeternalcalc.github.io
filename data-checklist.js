@@ -115,7 +115,7 @@ const checklistSS = [
   { id: 's10', name: 'Killas Godspeed' },
   { id: 's11', name: 'Eran' },
   { id: 's12', name: 'Esanor' },
-  { id: 's13', name: 'Number 6' },
+  { id: 's13', name: 'Number 8' },
   { id: 's14', name: 'Valzora' },
   { id: 's15', name: 'The Paladin' },
   { id: 's16', name: 'Dino' },
