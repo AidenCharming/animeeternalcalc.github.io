@@ -72,7 +72,7 @@ function loadRankUpData() {
             document.getElementById('rankSelect').value = rankSelect;
             document.getElementById('rankInput').value = rankSelect;
         }
-        
+
         const rankInput = localStorage.getItem('ae_rankInput');
         if (rankInput) document.getElementById('rankInput').value = rankInput;
 
@@ -116,10 +116,10 @@ function loadRankUpData() {
             document.getElementById('clickerSpeed').checked = isChecked;
             document.getElementById('clickerSpeedETA').checked = isChecked;
         }
-        
+
         displayRankRequirement();
         calculateRankUp();
-        
+
     } catch (e) {
         console.error("Failed to load rankup data from localStorage", e);
     }
@@ -148,12 +148,12 @@ function loadETAData() {
         const currentEnergyNum = localStorage.getItem('ae_currentEnergyETA') || '';
         document.getElementById('currentEnergyETA').value = currentEnergyNum;
         // console.log("Loading 'ae_currentEnergyETA':", currentEnergyNum);
-        
+
         // FIXED: Added this line to load the saved text
         const currentEnergyDenomText = localStorage.getItem('ae_currentEnergyETADenomInput') || '';
         document.getElementById('currentEnergyETADenominationInput').value = currentEnergyDenomText;
         // console.log("Loading 'ae_currentEnergyETADenomInput':", currentEnergyDenomText);
-        
+
         // --- NEW FIX ---
         // Find the matching value for the loaded text and update the hidden input
         const currentDenom = denominations.find(d => d.name === currentEnergyDenomText);
@@ -199,7 +199,7 @@ function loadETAData() {
             document.getElementById('energyPerClickETADenominationValue').value = '1';
         }
         // --- END NEW FIX ---
-        
+
         const clickerSpeed = localStorage.getItem('ae_clickerSpeedETA');
         if (clickerSpeed !== null) {
             const isChecked = (clickerSpeed === 'true');
@@ -237,7 +237,7 @@ function calculateEnergyETA() {
     const energyPerClickValue = getNumberValue('energyPerClickETA');
     const energyPerClickDenom = (parseFloat(document.getElementById('energyPerClickETADenominationValue').value) || 1);
     const energyPerClick = energyPerClickValue * energyPerClickDenom;
-    
+
     const SLOW_CPS = 1.0919;
     const FAST_CPS = 5.88505;
     const clicksPerSecond = isFastClicker ? FAST_CPS : SLOW_CPS;
@@ -268,12 +268,12 @@ function calculateEnergyETA() {
     }
 
     const timeInSeconds = (energyNeeded / energyPerClick) / clicksPerSecond;
-    
+
     const days = Math.floor(timeInSeconds / 86400);
     const hours = Math.floor((timeInSeconds % 86400) / 3600);
     const minutes = Math.floor((timeInSeconds % 3600) / 60);
     const seconds = Math.round(timeInSeconds % 60);
-    
+
     let resultString = '';
     if (days > 0) resultString += `${days}d `;
     if (hours > 0 || days > 0) resultString += `${hours}h `;
@@ -304,12 +304,12 @@ function calculateTTK() {
         return;
     }
     const timeInSeconds = enemyHealth / yourDPS;
-    
+
     const days = Math.floor(timeInSeconds / 86400);
     const hours = Math.floor((timeInSeconds % 86400) / 3600);
     const minutes = Math.floor((timeInSeconds % 3600) / 60);
     const seconds = Math.round(timeInSeconds % 60);
-    
+
     let resultString = '';
     if (days > 0) resultString += `${days}d `;
     if (hours > 0 || days > 0) resultString += `${hours}h `;
@@ -333,7 +333,7 @@ function calculateRankUp() {
     console.group("DEBUG: calculateRankUp");
 
     const isFastClicker = document.getElementById('clickerSpeed').checked;
-    
+
     // EDITED: Broke out variables for logging
     const currentEnergyValue = (getNumberValue('currentEnergy') || 0);
     const currentEnergyDenom = (parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1);
@@ -385,12 +385,12 @@ function calculateRankUp() {
     }
 
     const timeInSeconds = (energyNeeded / energyPerClick) / clicksPerSecond;
-    
+
     const days = Math.floor(timeInSeconds / 86400);
     const hours = Math.floor((timeInSeconds % 86400) / 3600);
     const minutes = Math.floor((timeInSeconds % 3600) / 60);
     const seconds = Math.round(timeInSeconds % 60);
-    
+
     let resultString = '';
     if (days > 0) resultString += `${days}d `;
     if (hours > 0 || days > 0) resultString += `${hours}h `;
@@ -423,7 +423,7 @@ function populateEnemyDropdown() {
     const enemySelect = document.getElementById('enemySelect');
     const selectedWorldName = document.getElementById('worldSelect').value;
     const world = worldData[selectedWorldName];
-    
+
     enemySelect.innerHTML = '<option value="">-- Select an Enemy --</option>';
     document.getElementById('enemyHealth').value = '';
     document.getElementById('enemyHealthDisplay').innerText = 'Select an enemy to see health';
@@ -445,7 +445,7 @@ function displayEnemyHealth() {
     const world = worldData[selectedWorldName];
     const enemyHealthInput = document.getElementById('enemyHealth');
     const enemyHealthDisplay = document.getElementById('enemyHealthDisplay');
-    
+
     if (world && world.enemies && world.enemies[selectedEnemy]) {
         const healthValue = world.enemies[selectedEnemy];
         enemyHealthInput.value = healthValue;
@@ -478,12 +478,12 @@ async function loadAllData() {
         })
         .catch(error => {
             console.warn('WARNING: Error loading data-worlds.json. TTK calculator will be unavailable.', error);
-            return null; 
+            return null;
         });
 
     try {
         const [manifest, loadedWorlds] = await Promise.all([manifestPromise, worldPromise]);
-        
+
         // Populate worldData if the fetch was successful
         if (loadedWorlds) {
             Object.assign(worldData, loadedWorlds);
@@ -491,31 +491,31 @@ async function loadAllData() {
 
         console.log("DEBUG: Manifest and world data loaded.");
 
-        const raidPromises = manifest.raids.map(file => 
+        const raidPromises = manifest.raids.map(file =>
             fetch(`raids/${file}`)
                 .then(response => response.ok ? response.json() : Promise.reject(`Failed to load ${file}`))
                 .then(data => ({ name: file.replace('.json', ''), data }))
                 .catch(error => { console.warn(`WARNING: Error loading raid ${file}:`, error); return null; })
         );
 
-        const dungeonPromises = manifest.dungeons.map(file => 
+        const dungeonPromises = manifest.dungeons.map(file =>
             fetch(`dungeons/${file}`)
                 .then(response => response.ok ? response.json() : Promise.reject(`Failed to load ${file}`))
                 .then(data => ({ name: file.replace('.json', ''), data }))
                 .catch(error => { console.warn(`WARNING: Error loading dungeon ${file}:`, error); return null; })
         );
-        
+
         const [loadedDungeons, loadedRaids] = await Promise.all([
             Promise.all(dungeonPromises),
             Promise.all(raidPromises)
         ]);
-        
+
         const allActivities = [...loadedDungeons, ...loadedRaids].filter(Boolean); // Filter out nulls from failed fetches
-        
+
         allActivities.forEach(activity => {
             activityData[activity.name] = activity.data;
         });
-        
+
         console.log("DEBUG: Successfully loaded and combined all dynamic activity data.");
 
     } catch (error) {
@@ -526,7 +526,7 @@ async function loadAllData() {
 function populateActivityDropdown() {
     const select = document.getElementById('activitySelect');
     select.innerHTML = '<option value="">-- Select an Activity --</option>';
-    
+
     // Sort keys alphabetically for a consistent order
     const sortedActivityNames = Object.keys(activityData).sort((a, b) => a.localeCompare(b));
 
@@ -542,15 +542,16 @@ function handleActivityChange() {
     const selection = document.getElementById('activitySelect').value;
     const activity = activityData[selection];
     const resultLabel = document.getElementById('activityResultLabel');
-    
+
     if (!activity) {
         document.getElementById('activityResult').innerText = '0 / 0';
         return;
     }
 
     document.getElementById('activityTimeLimit').value = activity.timeLimit;
-    
-    if (activity.type === 'raid' && activity.healthMultiplier) {
+
+    // Use "Wave" for raids, "Room" for dungeons
+    if (activity.type === 'raid') {
         resultLabel.innerText = 'Estimated Max Wave:';
     } else {
         resultLabel.innerText = 'Estimated Max Room:';
@@ -570,37 +571,56 @@ function calculateMaxStage() {
     const timeLimit = getNumberValue('activityTimeLimit');
     const resultEl = document.getElementById('activityResult');
 
-    if (yourDPS <= 0 || timeLimit <= 0) {
-        resultEl.innerText = `0 / ${activity.maxStages}`;
+    // Default to a maximum of 0 stages if data is missing
+    const maxStages = activity ? activity.maxStages : 0;
+
+    if (!activity || yourDPS <= 0 || timeLimit <= 0) {
+        resultEl.innerText = `0 / ${maxStages}`;
         return;
     }
-    
+
     const maxDamageInTime = yourDPS * timeLimit;
     let completedStage = 0;
 
-    if (activity.type === 'raid' && activity.healthMultiplier) {
-        let currentHealth = activity.baseHealth;
-        for (let i = 1; i <= activity.maxStages; i++) {
-            // Assuming 5 enemies per wave, as is common
-            const totalWaveHealth = currentHealth * 5; 
-            if (maxDamageInTime < totalWaveHealth) {
+    // --- UPDATED COMBINED RAID/DUNGEON LOGIC ---
+    if (activity.enemies) {
+        // --- NEW: Define the list of 1-enemy raids ---
+        const singleEnemyRaids = ["Mundo Raid", "Gleam Raid", "Tournament Raid"];
+
+        for (let i = 1; i <= maxStages; i++) {
+            const stageKey = `Room ${i}`;
+            let stageHealth = activity.enemies[stageKey];
+
+            if (!stageHealth) {
+                console.warn(`Health data missing for ${selection} - ${stageKey}`);
+                break;
+            }
+
+            stageHealth = parseFloat(stageHealth);
+
+            // --- MODIFIED: Determine the multiplier ---
+            let enemyMultiplier = 1; // Default multiplier (for dungeons and exceptions)
+            if (activity.type === 'raid' && !singleEnemyRaids.includes(selection)) {
+                // Apply 5x multiplier ONLY if it's a raid AND NOT in the exception list
+                enemyMultiplier = 5;
+            }
+
+            const totalStageHealth = stageHealth * enemyMultiplier;
+            // --- END MODIFICATION ---
+
+            if (maxDamageInTime < totalStageHealth) {
                 break;
             }
             completedStage = i;
-            currentHealth *= activity.healthMultiplier;
         }
-    } else { // Dungeons
-        for (let i = 1; i <= activity.maxStages; i++) {
-            const roomHealth = activity.enemies[`Room ${i}`];
-            if (!roomHealth || maxDamageInTime < parseFloat(roomHealth)) {
-                break;
-            }
-            completedStage = i;
-        }
+    } else {
+        console.warn(`Activity "${selection}" does not have the expected 'enemies' structure.`);
     }
-    
-    resultEl.innerText = `${completedStage} / ${activity.maxStages}`;
+    // --- END UPDATED LOGIC ---
+
+    resultEl.innerText = `${completedStage} / ${maxStages}`;
 }
+
 
 // --- Searchable Dropdown Logic ---
 function setupRankSearch(inputId, valueId, listId) {
@@ -657,7 +677,7 @@ function setupRankSearch(inputId, valueId, listId) {
             listEl.classList.add('hidden');
         }, 150);
     }
-    
+
     function handleRankInputFocus() {
         filterAndShowRanks();
     }
@@ -674,9 +694,9 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
     const valueEl = document.getElementById(valueId);
     const listEl = document.getElementById(listId);
 
-    if (!inputEl || !valueEl || !listEl) { 
+    if (!inputEl || !valueEl || !listEl) {
         console.error("Missing elements for setupDenominationSearch:", inputId);
-        return; 
+        return;
     }
 
     function filterAndShowDenominations() {
@@ -688,9 +708,9 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
     function renderDenominationsList(list) {
         listEl.innerHTML = '';
         if (list.length === 0) { listEl.classList.add('hidden'); return; }
-        
+
         list.sort((a, b) => a.value - b.value);
-        
+
         list.forEach(d => {
             const item = document.createElement('div');
             item.className = 'p-2 hover:bg-[#3a3a5a] cursor-pointer text-sm';
@@ -706,7 +726,7 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
         });
         listEl.classList.remove('hidden');
     }
-    
+
     function handleDenominationBlur() {
          setTimeout(() => { // Use timeout to allow click event to fire first
             const inputText = inputEl.value.trim();
@@ -722,16 +742,16 @@ function setupDenominationSearch(inputId, valueId, listId, callback) {
                 const currentDenom = denominations.find(d => d.value == currentValue);
                 inputEl.value = currentDenom && currentDenom.name !== 'None' ? currentDenom.name : '';
             }
-            
+
             listEl.classList.add('hidden');
             if (callback) callback();
         }, 150);
     }
-    
+
     function handleDenominationFocus() {
         filterAndShowDenominations();
     }
-    
+
     inputEl.addEventListener('input', debounce(filterAndShowDenominations, 300));
     inputEl.addEventListener('focus', handleDenominationFocus);
     inputEl.addEventListener('blur', handleDenominationBlur);
@@ -805,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAllData().then(() => {
         console.log("DEBUG: Data loading complete. Setting up UI.");
         switchTab('rankup');
-        
+
         // --- Setup Searchable Dropdowns ---
         setupRankSearch('rankInput', 'rankSelect', 'rankList');
         populateWorldDropdown();
@@ -827,14 +847,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ttkInputs = [document.getElementById('yourDPS')];
         ttkInputs.forEach(input => { input.addEventListener('input', debounce(calculateTTK, 300)); });
-        
+
         const activityInputs = [document.getElementById('yourDPSActivity'), document.getElementById('activityTimeLimit')];
         activityInputs.forEach(input => input.addEventListener('input', debounce(calculateMaxStage, 300)));
-        
+
         const etaInputs = [document.getElementById('currentEnergyETA'), document.getElementById('targetEnergyETA'), document.getElementById('energyPerClickETA')];
         etaInputs.forEach(input => input.addEventListener('input', debounce(calculateEnergyETA, 300)));
         document.getElementById('clickerSpeedETA').addEventListener('change', calculateEnergyETA);
-        
+
         // --- Load Saved Data ---
         loadRankUpData();
         loadETAData();
@@ -852,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const gachasList = document.getElementById('gachas-list');
             const levelersList = document.getElementById('levelers-list');
             const ssList = document.getElementById('ss-list');
-            
+
             // Get references to the title elements
             const gachasTitle = document.getElementById('gachas-title');
             const levelersTitle = document.getElementById('levelers-title');
@@ -963,7 +983,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const span = document.createElement('span');
                 span.textContent = item.name;
-                
+
                 // REMOVED old styling logic from here
 
                 label.appendChild(checkbox);
@@ -971,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // ADDED call to new helper function
                 styleChecklistItem(checkbox, checkbox.checked);
-                
+
                 return label;
             }
 
@@ -1006,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Style the label text
                     // REPLACED old styling logic with this:
                     styleChecklistItem(e.target, e.target.checked);
-                    
+
                     // Save the new state
                     saveChecklistData();
                 }
