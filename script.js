@@ -83,8 +83,15 @@ function loadRankUpData() {
         const currentEnergyDenomInput = localStorage.getItem('ae_currentEnergyDenomInput');
         if (currentEnergyDenomInput) document.getElementById('currentEnergyDenominationInput').value = currentEnergyDenomInput;
 
-        const currentEnergyDenomValue = localStorage.getItem('ae_currentEnergyDenomValue');
-        if (currentEnergyDenomValue) document.getElementById('currentEnergyDenominationValue').value = currentEnergyDenomValue;
+        // --- NEW FIX ---
+        // Find the matching value for the loaded text and update the hidden input
+        const currentDenom = denominations.find(d => d.name === currentEnergyDenomInput);
+        if (currentDenom) {
+            document.getElementById('currentEnergyDenominationValue').value = currentDenom.value;
+        } else {
+            document.getElementById('currentEnergyDenominationValue').value = '1';
+        }
+        // --- END NEW FIX ---
 
         const energyPerClick = localStorage.getItem('ae_energyPerClick');
         if (energyPerClick) document.getElementById('energyPerClick').value = energyPerClick;
@@ -93,8 +100,15 @@ function loadRankUpData() {
         const energyPerClickDenomInput = localStorage.getItem('ae_energyPerClickDenomInput');
         if (energyPerClickDenomInput) document.getElementById('energyPerClickDenominationInput').value = energyPerClickDenomInput;
 
-        const energyPerClickDenomValue = localStorage.getItem('ae_energyPerClickDenomValue');
-        if (energyPerClickDenomValue) document.getElementById('energyPerClickDenominationValue').value = energyPerClickDenomValue;
+        // --- NEW FIX ---
+        // Find the matching value for the loaded text and update the hidden input
+        const energyPerClickDenom = denominations.find(d => d.name === energyPerClickDenomInput);
+        if (energyPerClickDenom) {
+            document.getElementById('energyPerClickDenominationValue').value = energyPerClickDenom.value;
+        } else {
+            document.getElementById('energyPerClickDenominationValue').value = '1';
+        }
+        // --- END NEW FIX ---
 
         const clickerSpeed = localStorage.getItem('ae_clickerSpeed');
         if (clickerSpeed !== null) {
@@ -129,16 +143,62 @@ function saveETAData() {
 }
 
 function loadETAData() {
+    // console.group("DEBUG: loadETAData"); // <-- REMOVING DEBUG LOGS
     try {
-        document.getElementById('currentEnergyETA').value = localStorage.getItem('ae_currentEnergyETA') || '';
-        document.getElementById('currentEnergyETADenominationInput').value = localStorage.getItem('ae_currentEnergyETADenomInput') || '';
-        document.getElementById('currentEnergyETADenominationValue').value = localStorage.getItem('ae_currentEnergyETADenominationValue') || '1';
-        document.getElementById('targetEnergyETA').value = localStorage.getItem('ae_targetEnergyETA') || '';
-        document.getElementById('targetEnergyETADenominationInput').value = localStorage.getItem('ae_targetEnergyETADenomInput') || '';
-        document.getElementById('targetEnergyETADenominationValue').value = localStorage.getItem('ae_targetEnergyETADenominationValue') || '1';
-        document.getElementById('energyPerClickETA').value = localStorage.getItem('ae_energyPerClickETA') || '';
-        document.getElementById('energyPerClickETADenominationInput').value = localStorage.getItem('ae_energyPerClickETADenomInput') || '';
-        document.getElementById('energyPerClickETADenominationValue').value = localStorage.getItem('ae_energyPerClickETADenominationValue') || '1';
+        const currentEnergyNum = localStorage.getItem('ae_currentEnergyETA') || '';
+        document.getElementById('currentEnergyETA').value = currentEnergyNum;
+        // console.log("Loading 'ae_currentEnergyETA':", currentEnergyNum);
+        
+        // FIXED: Added this line to load the saved text
+        const currentEnergyDenomText = localStorage.getItem('ae_currentEnergyETADenomInput') || '';
+        document.getElementById('currentEnergyETADenominationInput').value = currentEnergyDenomText;
+        // console.log("Loading 'ae_currentEnergyETADenomInput':", currentEnergyDenomText);
+        
+        // --- NEW FIX ---
+        // Find the matching value for the loaded text and update the hidden input
+        const currentDenom = denominations.find(d => d.name === currentEnergyDenomText);
+        if (currentDenom) {
+            document.getElementById('currentEnergyETADenominationValue').value = currentDenom.value;
+        } else {
+            document.getElementById('currentEnergyETADenominationValue').value = '1';
+        }
+        // --- END NEW FIX ---
+
+        const targetEnergyNum = localStorage.getItem('ae_targetEnergyETA') || '';
+        document.getElementById('targetEnergyETA').value = targetEnergyNum;
+        // console.log("Loading 'ae_targetEnergyETA':", targetEnergyNum);
+
+        // FIXED: Added this line to load the saved text
+        const targetEnergyDenomText = localStorage.getItem('ae_targetEnergyETADenomInput') || '';
+        document.getElementById('targetEnergyETADenominationInput').value = targetEnergyDenomText;
+        // console.log("Loading 'ae_targetEnergyETADenomInput':", targetEnergyDenomText);
+
+        // --- NEW FIX ---
+        const targetDenom = denominations.find(d => d.name === targetEnergyDenomText);
+        if (targetDenom) {
+            document.getElementById('targetEnergyETADenominationValue').value = targetDenom.value;
+        } else {
+            document.getElementById('targetEnergyETADenominationValue').value = '1';
+        }
+        // --- END NEW FIX ---
+
+        const energyPerClickNum = localStorage.getItem('ae_energyPerClickETA') || '';
+        document.getElementById('energyPerClickETA').value = energyPerClickNum;
+        // console.log("Loading 'ae_energyPerClickETA':", energyPerClickNum);
+
+        // FIXED: Added this line to load the saved text
+        const energyPerClickDenomText = localStorage.getItem('ae_energyPerClickETADenomInput') || '';
+        document.getElementById('energyPerClickETADenominationInput').value = energyPerClickDenomText;
+        // console.log("Loading 'ae_energyPerClickETADenomInput':", energyPerClickDenomText);
+
+        // --- NEW FIX ---
+        const energyPerClickDenom = denominations.find(d => d.name === energyPerClickDenomText);
+        if (energyPerClickDenom) {
+            document.getElementById('energyPerClickETADenominationValue').value = energyPerClickDenom.value;
+        } else {
+            document.getElementById('energyPerClickETADenominationValue').value = '1';
+        }
+        // --- END NEW FIX ---
         
         const clickerSpeed = localStorage.getItem('ae_clickerSpeedETA');
         if (clickerSpeed !== null) {
@@ -152,28 +212,57 @@ function loadETAData() {
     } catch(e) {
         console.error("Failed to load ETA data from localStorage", e);
     }
+    // console.groupEnd(); // <-- REMOVING DEBUG LOGS
 }
 
 // --- Calculator Logics ---
 
 function calculateEnergyETA() {
+    // ADDED: Debug group
+    console.group("DEBUG: calculateEnergyETA");
+
     const isFastClicker = document.getElementById('clickerSpeedETA').checked;
-    const currentEnergy = getNumberValue('currentEnergyETA') * (parseFloat(document.getElementById('currentEnergyETADenominationValue').value) || 1);
-    const targetEnergy = getNumberValue('targetEnergyETA') * (parseFloat(document.getElementById('targetEnergyETADenominationValue').value) || 1);
-    const energyPerClick = getNumberValue('energyPerClickETA') * (parseFloat(document.getElementById('energyPerClickETADenominationValue').value) || 1);
+
+    // EDITED: Broke out variables for logging
+    const currentEnergyValue = getNumberValue('currentEnergyETA');
+    const currentEnergyDenom = (parseFloat(document.getElementById('currentEnergyETADenominationValue').value) || 1);
+    const currentEnergy = currentEnergyValue * currentEnergyDenom;
+
+    // EDITED: Broke out variables for logging
+    const targetEnergyValue = getNumberValue('targetEnergyETA');
+    const targetEnergyDenom = (parseFloat(document.getElementById('targetEnergyETADenominationValue').value) || 1);
+    const targetEnergy = targetEnergyValue * targetEnergyDenom;
+
+    // EDITED: Broke out variables for logging
+    const energyPerClickValue = getNumberValue('energyPerClickETA');
+    const energyPerClickDenom = (parseFloat(document.getElementById('energyPerClickETADenominationValue').value) || 1);
+    const energyPerClick = energyPerClickValue * energyPerClickDenom;
     
     const SLOW_CPS = 1.0919;
     const FAST_CPS = 5.88505;
     const clicksPerSecond = isFastClicker ? FAST_CPS : SLOW_CPS;
     const energyNeeded = targetEnergy - currentEnergy;
 
+    // ADDED: Debug logs
+    console.log("Current Energy:", currentEnergyValue, "*", currentEnergyDenom.toExponential(), "=", currentEnergy.toExponential());
+    console.log("Target Energy:", targetEnergyValue, "*", targetEnergyDenom.toExponential(), "=", targetEnergy.toExponential());
+    console.log("Energy per Click:", energyPerClickValue, "*", energyPerClickDenom.toExponential(), "=", energyPerClick.toExponential());
+    console.log("Energy Needed:", energyNeeded.toExponential());
+    console.log("Clicker Speed:", isFastClicker ? "Fast (5.88 CPS)" : "Slow (1.09 CPS)");
+
     if (energyNeeded <= 0) {
         document.getElementById('etaResult').innerText = 'Target Reached!';
+        // ADDED: Debug logs
+        console.log("Result: Target Reached!");
+        console.groupEnd();
         saveETAData();
         return;
     }
     if (energyPerClick <= 0 || clicksPerSecond <= 0) {
         document.getElementById('etaResult').innerText = 'N/A';
+        // ADDED: Debug logs
+        console.log("Result: N/A (EPC or CPS is zero)");
+        console.groupEnd();
         saveETAData();
         return;
     }
@@ -190,6 +279,12 @@ function calculateEnergyETA() {
     if (hours > 0 || days > 0) resultString += `${hours}h `;
     if (minutes > 0 || hours > 0 || days > 0) resultString += `${minutes}m `;
     resultString += `${seconds}s`;
+
+    // ADDED: Debug logs
+    console.log("Time (seconds):", timeInSeconds.toExponential());
+    console.log("Result (string):", resultString.trim());
+    console.groupEnd();
+
     document.getElementById('etaResult').innerText = resultString.trim();
 
     saveETAData();
@@ -197,6 +292,8 @@ function calculateEnergyETA() {
 
 
 function calculateTTK() {
+    // FIXED: This function was broken by a copy-paste error.
+    // Restored the correct logic.
     const enemyHealth = getNumberValue('enemyHealth');
     const dpsInput = getNumberValue('yourDPS');
     const dpsMultiplier = parseFloat(document.getElementById('dpsDenominationValue').value) || 1;
@@ -258,6 +355,8 @@ function calculateRankUp() {
 
     if (!energyForRank) {
         document.getElementById('rankUpResult').innerText = 'Select a rank';
+        console.log("Result: Select a rank");
+        console.groupEnd();
         saveRankUpData();
         return;
     }
@@ -272,11 +371,15 @@ function calculateRankUp() {
 
     if (energyNeeded <= 0) {
         document.getElementById('rankUpResult').innerText = 'Rank Up Ready!';
+        console.log("Result: Rank Up Ready!");
+        console.groupEnd();
         saveRankUpData();
         return;
     }
     if (energyPerClick <= 0) {
         document.getElementById('rankUpResult').innerText = 'N/A';
+        console.log("Result: N/A (EPC is zero)");
+        console.groupEnd();
         saveRankUpData();
         return;
     }
@@ -299,8 +402,10 @@ function calculateRankUp() {
     console.log("Result (string):", resultString.trim());
     console.groupEnd();
 
+    // FIXED: Changed 'etaResult' to 'rankUpResult'
     document.getElementById('rankUpResult').innerText = resultString.trim();
 
+    // FIXED: Changed 'saveETAData' to 'saveRankUpData'
     saveRankUpData();
 }
 
@@ -896,6 +1001,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 });
+
 
 
 
