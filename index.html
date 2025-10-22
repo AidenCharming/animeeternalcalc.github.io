@@ -68,6 +68,7 @@
                 <button id="tab-eta" class="tab-btn text-sm md:text-base flex-1 py-3 px-2 focus:outline-none" onclick="switchTab('eta')">Target Energy ETA</button>
                 <button id="tab-ttk" class="tab-btn text-sm md:text-base flex-1 py-3 px-2 focus:outline-none" onclick="switchTab('ttk')">Time to Kill</button>
                 <button id="tab-raid" class="tab-btn text-sm md:text-base flex-1 py-3 px-2 focus:outline-none" onclick="switchTab('raid')">Raids / Dungeons</button>
+                <button id="tab-checklist" class="tab-btn text-sm md:text-base flex-1 py-3 px-2 focus:outline-none" onclick="switchTab('checklist')">Checklist</button>
             </div>
 
             <!-- Panel: Rank Up -->
@@ -234,11 +235,44 @@
                 </div>
             </div>
 
+            <!-- Panel: Checklist -->
+            <div id="panel-checklist" class="hidden space-y-6">
+                <p class="text-center text-gray-300 -mt-2">Your 100% completion progress. Items are saved in your browser.</p>
+                <!-- Grid container for the checklists -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Column 1: Gachas -->
+                    <section>
+                        <h2 id="gachas-title" class="text-xl font-semibold mb-3 text-emerald-400">Gachas (0 / 34)</h2>
+                        <div id="gachas-list" class="space-y-2">
+                            <!-- Gachas items will be injected here by JS -->
+                        </div>
+                    </section>
+
+                    <!-- Column 2: Levelers -->
+                    <section>
+                        <h2 id="levelers-title" class="text-xl font-semibold mb-3 text-sky-400">Levelers (0 / 63)</h2>
+                        <div id="levelers-list" class="space-y-2">
+                            <!-- Levelers items will be injected here by JS -->
+                        </div>
+                    </section>
+
+                    <!-- Column 3: SS Quest -->
+                    <section>
+                        <h2 id="ss-title" class="text-xl font-semibold mb-3 text-amber-400">SS Quest (0 / 24)</h2>
+                        <div id="ss-list" class="space-y-2">
+                            <!-- Secret Shinies items will be injected here by JS -->
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <!-- END OF NEW PANEL -->
+
         </main>
     </div>
     
     <!-- Load static data files -->
     <script src="data-core.js"></script>
+    <script src="data-checklist.js"></script>
     
     <!-- The main logic file will now fetch all JSON data, including worlds. -->
     <script src="script.js"></script>
@@ -247,7 +281,7 @@
     <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
     <script>
       // IMPORTANT: Replace 'YOUR_KOFI_USERNAME' with your actual Ko-fi username
-      kofiWidgetOverlay.draw('YOUR_KOFI_USERNAME', {
+      kofiWidgetOverlay.draw('aidencharming', {
         'type': 'floating-chat',
         'floating-chat.donateButton.text': 'Support Me',
         'floating-chat.donateButton.background-color': '#5cb85c', // A friendly green color
@@ -256,3 +290,4 @@
     </script>
 </body>
 </html>
+

@@ -1,5 +1,5 @@
 // --- Tab Switching Logic ---
-const tabs = ['rankup', 'eta', 'ttk', 'raid'];
+const tabs = ['rankup', 'eta', 'ttk', 'raid', 'checklist'];
 function switchTab(activeTab) {
     tabs.forEach(tab => {
         const panel = document.getElementById(`panel-${tab}`);
@@ -662,5 +662,167 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Load Saved Data ---
         loadRankUpData();
         loadETAData();
+
+        // --- ADD ALL THE NEW CHECKLIST LOGIC BELOW ---
+
+        // Check if the checklist data is loaded (from data-checklist.js)
+        if (typeof checklistGachas !== 'undefined') {
+            const checklistPanel = document.getElementById('panel-checklist');
+            const gachasList = document.getElementById('gachas-list');
+            const levelersList = document.getElementById('levelers-list');
+            const ssList = document.getElementById('ss-list');
+            
+            // Get references to the title elements
+            const gachasTitle = document.getElementById('gachas-title');
+            const levelersTitle = document.getElementById('levelers-title');
+            const ssTitle = document.getElementById('ss-title');
+
+            const CHECKLIST_SAVE_KEY = 'ae_checklist_progress';
+
+            // Function to update the checklist titles with completed counts
+            function updateChecklistTitles(savedData) {
+                // Default to an empty object if no data is passed
+                if (!savedData) {
+                    try {
+                        savedData = JSON.parse(localStorage.getItem(CHECKLIST_SAVE_KEY)) || {};
+                    } catch (e) {
+                        savedData = {};
+                    }
+                }
+
+                // Get total counts from the data files
+                const gachasTotal = checklistGachas.length;
+                const levelersTotal = checklistLevelers.length;
+                const ssTotal = checklistSS.length;
+
+                // Get completed counts by checking the saved data
+                let gachasCompleted = 0;
+                let levelersCompleted = 0;
+                let ssCompleted = 0;
+
+                Object.keys(savedData).forEach(id => {
+                    if (id.startsWith('g')) {
+                        gachasCompleted++;
+                    } else if (id.startsWith('l')) {
+                        levelersCompleted++;
+                    } else if (id.startsWith('s')) {
+                        ssCompleted++;
+                    }
+                });
+
+                // Update titles
+                if (gachasTitle) {
+                    gachasTitle.innerText = `Gachas (${gachasCompleted} / ${gachasTotal})`;
+                }
+                if (levelersTitle) {
+                    levelersTitle.innerText = `Levelers (${levelersCompleted} / ${levelersTotal})`;
+                }
+                if (ssTitle) {
+                    ssTitle.innerText = `SS Quest (${ssCompleted} / ${ssTotal})`;
+                }
+            }
+
+
+            // Function to load saved data from localStorage
+            function loadChecklistData() {
+                try {
+                    const savedData = JSON.parse(localStorage.getItem(CHECKLIST_SAVE_KEY)) || {};
+                    populateChecklists(savedData);
+                    updateChecklistTitles(savedData); // Update titles on load
+                } catch (e) {
+                    console.error("Failed to load checklist data:", e);
+                    populateChecklists({}); // Load with no items checked
+                    updateChecklistTitles({}); // Update titles on load (fallback)
+                }
+            }
+
+            // Function to save the current state to localStorage
+            function saveChecklistData() {
+                try {
+                    const savedData = {};
+                    const checkboxes = checklistPanel.querySelectorAll('input[type="checkbox"]:checked');
+                    checkboxes.forEach(cb => {
+                        savedData[cb.id] = true;
+                    });
+                    localStorage.setItem(CHECKLIST_SAVE_KEY, JSON.stringify(savedData));
+                    updateChecklistTitles(savedData); // Update titles on save
+                } catch (e) {
+                    console.error("Failed to save checklist data:", e);
+                }
+            }
+
+            // Function to create a single checklist item
+            function createChecklistItem(item, savedData) {
+                const label = document.createElement('label');
+                label.className = 'checklist-item';
+                label.htmlFor = item.id;
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = item.id;
+                checkbox.name = item.id;
+                checkbox.checked = !!savedData[item.id]; // Set checked state from save
+
+                const span = document.createElement('span');
+                span.textContent = item.name;
+                
+                if (checkbox.checked) {
+                    span.style.textDecoration = 'line-through';
+                    span.style.color = '#888';
+                }
+
+                label.appendChild(checkbox);
+                label.appendChild(span);
+                return label;
+            }
+
+            // Function to fill all three lists
+            function populateChecklists(savedData) {
+                // Clear existing lists
+                gachasList.innerHTML = '';
+                levelersList.innerHTML = '';
+                ssList.innerHTML = '';
+
+                // Populate Gachas
+                checklistGachas.forEach(item => {
+                    gachasList.appendChild(createChecklistItem(item, savedData));
+                });
+
+                // Populate Levelers
+                checklistLevelers.forEach(item => {
+                    levelersList.appendChild(createChecklistItem(item, savedData));
+                });
+
+                // Populate Secret Shinies
+                checklistSS.forEach(item => {
+                    ssList.appendChild(createChecklistItem(item, savedData));
+                });
+            }
+
+            // Add a single event listener to the panel for efficiency
+            checklistPanel.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    // Style the label text
+                    const span = e.target.nextElementSibling;
+                    if (e.target.checked) {
+                        span.style.textDecoration = 'line-through';
+                        span.style.color = '#888';
+                    } else {
+                        span.style.textDecoration = 'none';
+                        span.style.color = 'var(--muted)';
+                    }
+                    // Save the new state
+                    saveChecklistData();
+                }
+            });
+
+            // Initial load of checklist data
+            loadChecklistData();
+        } else {
+            console.warn("Checklist data not found. Make sure data-checklist.js is loaded.");
+        }
+        // --- END OF NEW CHECKLIST LOGIC ---
+
     });
 });
+
