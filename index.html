@@ -53,8 +53,6 @@
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- REMOVED the <style> block that was here -->
-
 </head>
 <!-- On the body tag, changed 'items-center' to 'items-start' to align content to the top -->
 <body class="min-h-screen flex items-start justify-center p-4">
@@ -139,6 +137,7 @@
                 <div class="result-box p-4 rounded-lg text-center">
                     <p class="text-gray-400">Time to next rank:</p>
                     <p id="rankUpResult" class="text-2xl font-bold text-orange-400">0s</p>
+                    <p id="rankUpReturnTime" class="text-sm text-gray-400 mt-1"></p>
                 </div>
             </div>
 
@@ -188,6 +187,7 @@
                 <div class="result-box p-4 rounded-lg text-center">
                     <p class="text-gray-400">Time to target energy:</p>
                     <p id="etaResult" class="text-2xl font-bold text-orange-400">0s</p>
+                    <p id="etaReturnTime" class="text-sm text-gray-400 mt-1"></p>
                 </div>
             </div>
 
@@ -206,7 +206,7 @@
                     </select>
                 </div>
                 <div>
-                    <label for="enemyHealthDisplay" class="block mb-2 text-sm font-medium">Enemy Health</label>
+                    <label for="enemyHealthDisplay" class="block mb-2 text-sm font-medium">Enemy Health (Single)</label>
                     <div id="enemyHealthDisplay" class="input-field w-full p-3 rounded-lg text-orange-400">Select an enemy to see health</div>
                     <input type="hidden" id="enemyHealth">
                 </div>
@@ -221,9 +221,16 @@
                         </div>
                     </div>
                 </div>
+                <div>
+                    <!-- CHANGED: Updated label text -->
+                    <label for="enemyQuantity" class="block mb-2 text-sm font-medium">Enemy Quantity</label>
+                    <input type="number" id="enemyQuantity" class="input-field w-full p-3 rounded-lg" placeholder="e.g., 25">
+                </div>
                 <div class="result-box p-4 rounded-lg text-center">
-                    <p class="text-gray-400">Estimated Time to Kill:</p>
+                    <p class="text-gray-400">Time to Kill (Single):</p>
                     <p id="ttkResult" class="text-2xl font-bold text-orange-400">0s</p>
+                    <p id="questTTKResult" class="text-lg font-bold text-orange-400 mt-2"></p>
+                    <p id="questReturnTime" class="text-sm text-gray-400 mt-1"></p>
                 </div>
             </div>
 
@@ -319,3 +326,4 @@
     </script>
 </body>
 </html>
+

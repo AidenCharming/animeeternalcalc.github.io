@@ -215,25 +215,124 @@ function loadETAData() {
     // console.groupEnd(); // <-- REMOVING DEBUG LOGS
 }
 
+// --- NEW TTK SAVE/LOAD FUNCTIONS ---
+function saveTTKData() {
+    try {
+        localStorage.setItem('ae_ttk_world', document.getElementById('worldSelect').value);
+        localStorage.setItem('ae_ttk_enemy', document.getElementById('enemySelect').value);
+        localStorage.setItem('ae_ttk_dps', document.getElementById('yourDPS').value);
+        localStorage.setItem('ae_ttk_dpsDenomInput', document.getElementById('dpsDenominationInput').value);
+        localStorage.setItem('ae_ttk_dpsDenomValue', document.getElementById('dpsDenominationValue').value);
+        localStorage.setItem('ae_ttk_quantity', document.getElementById('enemyQuantity').value);
+    } catch(e) {
+        console.error("Failed to save TTK data to localStorage", e);
+    }
+}
+
+function loadTTKData() {
+    try {
+        const dps = localStorage.getItem('ae_ttk_dps');
+        if (dps) document.getElementById('yourDPS').value = dps;
+
+        const dpsDenomInput = localStorage.getItem('ae_ttk_dpsDenomInput');
+        if (dpsDenomInput) document.getElementById('dpsDenominationInput').value = dpsDenomInput;
+        
+        const dpsDenom = denominations.find(d => d.name === dpsDenomInput);
+        if (dpsDenom) {
+            document.getElementById('dpsDenominationValue').value = dpsDenom.value;
+        } else {
+            document.getElementById('dpsDenominationValue').value = '1';
+        }
+
+        const quantity = localStorage.getItem('ae_ttk_quantity');
+        if (quantity) document.getElementById('enemyQuantity').value = quantity;
+
+        // Load world and enemy *after* other fields
+        const world = localStorage.getItem('ae_ttk_world');
+        if (world) {
+            document.getElementById('worldSelect').value = world;
+            // IMPORTANT: Manually trigger population of enemy dropdown
+            populateEnemyDropdown(); 
+            
+            const enemy = localStorage.getItem('ae_ttk_enemy');
+            if (enemy) {
+                document.getElementById('enemySelect').value = enemy;
+                // IMPORTANT: Manually trigger display of health and calculation
+                displayEnemyHealth(); 
+            }
+        }
+
+        // Final calculation call, in case dropdowns didn't trigger it
+        calculateTTK();
+
+    } catch(e) {
+        console.error("Failed to load TTK data from localStorage", e);
+    }
+}
+
+// --- NEW RAID SAVE/LOAD FUNCTIONS ---
+function saveRaidData() {
+    try {
+        localStorage.setItem('ae_raid_activity', document.getElementById('activitySelect').value);
+        localStorage.setItem('ae_raid_dps', document.getElementById('yourDPSActivity').value);
+        localStorage.setItem('ae_raid_dpsDenomInput', document.getElementById('dpsActivityDenominationInput').value);
+        localStorage.setItem('ae_raid_dpsDenomValue', document.getElementById('dpsActivityDenominationValue').value);
+        localStorage.setItem('ae_raid_timeLimit', document.getElementById('activityTimeLimit').value);
+    } catch(e) {
+        console.error("Failed to save Raid data to localStorage", e);
+    }
+}
+
+function loadRaidData() {
+    try {
+        const dps = localStorage.getItem('ae_raid_dps');
+        if (dps) document.getElementById('yourDPSActivity').value = dps;
+
+        const dpsDenomInput = localStorage.getItem('ae_raid_dpsDenomInput');
+        if (dpsDenomInput) document.getElementById('dpsActivityDenominationInput').value = dpsDenomInput;
+        
+        const dpsDenom = denominations.find(d => d.name === dpsDenomInput);
+        if (dpsDenom) {
+            document.getElementById('dpsActivityDenominationValue').value = dpsDenom.value;
+        } else {
+            document.getElementById('dpsActivityDenominationValue').value = '1';
+        }
+
+        const timeLimit = localStorage.getItem('ae_raid_timeLimit');
+        if (timeLimit) document.getElementById('activityTimeLimit').value = timeLimit;
+
+        // Load activity last to trigger chain reaction
+        const activity = localStorage.getItem('ae_raid_activity');
+        if (activity) {
+            document.getElementById('activitySelect').value = activity;
+            // IMPORTANT: Manually trigger activity change handler
+            handleActivityChange();
+        }
+
+        // Final calculation, in case dropdown didn't trigger it
+        calculateMaxStage();
+
+    } catch(e) {
+        console.error("Failed to load Raid data from localStorage", e);
+    }
+}
+
+
 // --- Calculator Logics ---
 
 function calculateEnergyETA() {
-    // ADDED: Debug group
-    console.group("DEBUG: calculateEnergyETA");
+    // console.group("DEBUG: calculateEnergyETA");
 
     const isFastClicker = document.getElementById('clickerSpeedETA').checked;
 
-    // EDITED: Broke out variables for logging
     const currentEnergyValue = getNumberValue('currentEnergyETA');
     const currentEnergyDenom = (parseFloat(document.getElementById('currentEnergyETADenominationValue').value) || 1);
     const currentEnergy = currentEnergyValue * currentEnergyDenom;
 
-    // EDITED: Broke out variables for logging
     const targetEnergyValue = getNumberValue('targetEnergyETA');
     const targetEnergyDenom = (parseFloat(document.getElementById('targetEnergyETADenominationValue').value) || 1);
     const targetEnergy = targetEnergyValue * targetEnergyDenom;
 
-    // EDITED: Broke out variables for logging
     const energyPerClickValue = getNumberValue('energyPerClickETA');
     const energyPerClickDenom = (parseFloat(document.getElementById('energyPerClickETADenominationValue').value) || 1);
     const energyPerClick = energyPerClickValue * energyPerClickDenom;
@@ -243,26 +342,28 @@ function calculateEnergyETA() {
     const clicksPerSecond = isFastClicker ? FAST_CPS : SLOW_CPS;
     const energyNeeded = targetEnergy - currentEnergy;
 
-    // ADDED: Debug logs
-    console.log("Current Energy:", currentEnergyValue, "*", currentEnergyDenom.toExponential(), "=", currentEnergy.toExponential());
-    console.log("Target Energy:", targetEnergyValue, "*", targetEnergyDenom.toExponential(), "=", targetEnergy.toExponential());
-    console.log("Energy per Click:", energyPerClickValue, "*", energyPerClickDenom.toExponential(), "=", energyPerClick.toExponential());
-    console.log("Energy Needed:", energyNeeded.toExponential());
-    console.log("Clicker Speed:", isFastClicker ? "Fast (5.88 CPS)" : "Slow (1.09 CPS)");
+    // console.log("Current Energy:", currentEnergyValue, "*", currentEnergyDenom.toExponential(), "=", currentEnergy.toExponential());
+    // console.log("Target Energy:", targetEnergyValue, "*", targetEnergyDenom.toExponential(), "=", targetEnergy.toExponential());
+    // console.log("Energy per Click:", energyPerClickValue, "*", energyPerClickDenom.toExponential(), "=", energyPerClick.toExponential());
+    // console.log("Energy Needed:", energyNeeded.toExponential());
+    // console.log("Clicker Speed:", isFastClicker ? "Fast (5.88 CPS)" : "Slow (1.09 CPS)");
+
+    // Get the new return time element
+    const returnTimeEl = document.getElementById('etaReturnTime');
 
     if (energyNeeded <= 0) {
         document.getElementById('etaResult').innerText = 'Target Reached!';
-        // ADDED: Debug logs
-        console.log("Result: Target Reached!");
-        console.groupEnd();
+        returnTimeEl.innerText = "You're already there!"; // NEW: Update return time text
+        // console.log("Result: Target Reached!");
+        // console.groupEnd();
         saveETAData();
         return;
     }
     if (energyPerClick <= 0 || clicksPerSecond <= 0) {
         document.getElementById('etaResult').innerText = 'N/A';
-        // ADDED: Debug logs
-        console.log("Result: N/A (EPC or CPS is zero)");
-        console.groupEnd();
+        returnTimeEl.innerText = ''; // NEW: Clear return time text
+        // console.log("Result: N/A (EPC or CPS is zero)");
+        // console.groupEnd();
         saveETAData();
         return;
     }
@@ -280,29 +381,53 @@ function calculateEnergyETA() {
     if (minutes > 0 || hours > 0 || days > 0) resultString += `${minutes}m `;
     resultString += `${seconds}s`;
 
-    // ADDED: Debug logs
-    console.log("Time (seconds):", timeInSeconds.toExponential());
-    console.log("Result (string):", resultString.trim());
-    console.groupEnd();
+    // console.log("Time (seconds):", timeInSeconds.toExponential());
+    // console.log("Result (string):", resultString.trim());
+    // console.groupEnd();
 
     document.getElementById('etaResult').innerText = resultString.trim();
+
+    // --- NEW: Calculate and display return time ---
+    const now = new Date();
+    const returnTime = new Date(now.getTime() + timeInSeconds * 1000);
+    // Format: "Oct 22 at 8:30 PM"
+    const returnString = returnTime.toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+    });
+    returnTimeEl.innerText = `Return on: ${returnString}`;
+    // --- END NEW ---
 
     saveETAData();
 }
 
 
 function calculateTTK() {
-    // FIXED: This function was broken by a copy-paste error.
-    // Restored the correct logic.
     const enemyHealth = getNumberValue('enemyHealth');
     const dpsInput = getNumberValue('yourDPS');
     const dpsMultiplier = parseFloat(document.getElementById('dpsDenominationValue').value) || 1;
     const yourDPS = dpsInput * dpsMultiplier;
+    
+    // NEW: Get quantity
+    const quantity = Math.floor(getNumberValue('enemyQuantity')) || 0;
+
+    // Get result elements
+    const singleResultEl = document.getElementById('ttkResult');
+    const questResultEl = document.getElementById('questTTKResult');
+    const questReturnEl = document.getElementById('questReturnTime');
 
     if (enemyHealth <= 0 || yourDPS <= 0) {
-        document.getElementById('ttkResult').innerText = 'N/A';
+        singleResultEl.innerText = 'N/A';
+        questResultEl.innerText = ''; // Clear quest results
+        questReturnEl.innerText = ''; // Clear quest results
+        saveTTKData(); // <-- ADDED SAVE CALL
         return;
     }
+
+    // --- Single Kill Calculation ---
     const timeInSeconds = enemyHealth / yourDPS;
 
     const days = Math.floor(timeInSeconds / 86400);
@@ -315,7 +440,46 @@ function calculateTTK() {
     if (hours > 0 || days > 0) resultString += `${hours}h `;
     if (minutes > 0 || hours > 0 || days > 0) resultString += `${minutes}m `;
     resultString += `${seconds}s`;
-    document.getElementById('ttkResult').innerText = resultString.trim();
+    
+    singleResultEl.innerText = resultString.trim();
+
+    // --- Quest Kill Calculation ---
+    if (quantity > 0) {
+        const totalTimeInSeconds = timeInSeconds * quantity;
+
+        const totalDays = Math.floor(totalTimeInSeconds / 86400);
+        const totalHours = Math.floor((totalTimeInSeconds % 86400) / 3600);
+        const totalMinutes = Math.floor((totalTimeInSeconds % 3600) / 60);
+        const totalSeconds = Math.round(totalTimeInSeconds % 60);
+
+        let totalResultString = '';
+        if (totalDays > 0) totalResultString += `${totalDays}d `;
+        if (totalHours > 0 || totalDays > 0) totalResultString += `${totalHours}h `;
+        if (totalMinutes > 0 || totalHours > 0 || totalDays > 0) totalResultString += `${totalMinutes}m `;
+        totalResultString += `${totalSeconds}s`;
+
+        questResultEl.innerText = `Time for ${quantity} kills: ${totalResultString.trim()}`;
+
+        // Calculate and display return time
+        const now = new Date();
+        const returnTime = new Date(now.getTime() + totalTimeInSeconds * 1000);
+        const returnString = returnTime.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+        });
+        // CHANGED: Updated the result text
+        questReturnEl.innerText = `Mobs killed by: ${returnString}`;
+
+    } else {
+        // Clear quest results if quantity is 0 or empty
+        questResultEl.innerText = '';
+        questReturnEl.innerText = '';
+    }
+    
+    saveTTKData(); // <-- ADDED SAVE CALL
 }
 
 function displayRankRequirement() {
@@ -329,17 +493,14 @@ function displayRankRequirement() {
 }
 
 function calculateRankUp() {
-    // ADDED: Debug group
-    console.group("DEBUG: calculateRankUp");
+    // console.group("DEBUG: calculateRankUp");
 
     const isFastClicker = document.getElementById('clickerSpeed').checked;
 
-    // EDITED: Broke out variables for logging
     const currentEnergyValue = (getNumberValue('currentEnergy') || 0);
     const currentEnergyDenom = (parseFloat(document.getElementById('currentEnergyDenominationValue').value) || 1);
     const currentEnergy = currentEnergyValue * currentEnergyDenom;
 
-    // EDITED: Broke out variables for logging
     const energyPerClickValue = (getNumberValue('energyPerClick') || 0);
     const energyPerClickDenom = (parseFloat(document.getElementById('energyPerClickDenominationValue').value) || 1);
     const energyPerClick = energyPerClickValue * energyPerClickDenom;
@@ -347,16 +508,19 @@ function calculateRankUp() {
     const selectedRank = document.getElementById('rankSelect').value;
     const energyForRank = rankRequirements[selectedRank] || 0;
 
-    // ADDED: Debug logs
-    console.log("Rank:", selectedRank, "-> Needs:", energyForRank ? energyForRank.toExponential() : "N/A");
-    console.log("Current Energy:", currentEnergyValue, "*", currentEnergyDenom.toExponential(), "=", currentEnergy.toExponential());
-    console.log("Energy per Click:", energyPerClickValue, "*", energyPerClickDenom.toExponential(), "=", energyPerClick.toExponential());
-    console.log("Clicker Speed:", isFastClicker ? "Fast (5.88 CPS)" : "Slow (1.09 CPS)");
+    // console.log("Rank:", selectedRank, "-> Needs:", energyForRank ? energyForRank.toExponential() : "N/A");
+    // console.log("Current Energy:", currentEnergyValue, "*", currentEnergyDenom.toExponential(), "=", currentEnergy.toExponential());
+    // console.log("Energy per Click:", energyPerClickValue, "*", energyPerClickDenom.toExponential(), "=", energyPerClick.toExponential());
+    // console.log("Clicker Speed:", isFastClicker ? "Fast (5.88 CPS)" : "Slow (1.09 CPS)");
+
+    // Get the new return time element
+    const returnTimeEl = document.getElementById('rankUpReturnTime');
 
     if (!energyForRank) {
         document.getElementById('rankUpResult').innerText = 'Select a rank';
-        console.log("Result: Select a rank");
-        console.groupEnd();
+        returnTimeEl.innerText = ''; // NEW: Clear return time
+        // console.log("Result: Select a rank");
+        // console.groupEnd();
         saveRankUpData();
         return;
     }
@@ -366,20 +530,21 @@ function calculateRankUp() {
     const clicksPerSecond = isFastClicker ? FAST_CPS : SLOW_CPS;
     const energyNeeded = energyForRank - currentEnergy;
 
-    // ADDED: Debug log
-    console.log("Energy Needed:", energyNeeded.toExponential());
+    // console.log("Energy Needed:", energyNeeded.toExponential());
 
     if (energyNeeded <= 0) {
         document.getElementById('rankUpResult').innerText = 'Rank Up Ready!';
-        console.log("Result: Rank Up Ready!");
-        console.groupEnd();
+        returnTimeEl.innerText = 'Ready to rank up now!'; // NEW: Update return time
+        // console.log("Result: Rank Up Ready!");
+        // console.groupEnd();
         saveRankUpData();
         return;
     }
     if (energyPerClick <= 0) {
         document.getElementById('rankUpResult').innerText = 'N/A';
-        console.log("Result: N/A (EPC is zero)");
-        console.groupEnd();
+        returnTimeEl.innerText = ''; // NEW: Clear return time
+        // console.log("Result: N/A (EPC is zero)");
+        // console.groupEnd();
         saveRankUpData();
         return;
     }
@@ -397,15 +562,26 @@ function calculateRankUp() {
     if (minutes > 0 || hours > 0 || days > 0) resultString += `${minutes}m `;
     resultString += `${seconds}s`;
 
-    // ADDED: Debug logs
-    console.log("Time (seconds):", timeInSeconds.toExponential());
-    console.log("Result (string):", resultString.trim());
-    console.groupEnd();
+    // console.log("Time (seconds):", timeInSeconds.toExponential());
+    // console.log("Result (string):", resultString.trim());
+    // console.groupEnd();
 
-    // FIXED: Changed 'etaResult' to 'rankUpResult'
     document.getElementById('rankUpResult').innerText = resultString.trim();
 
-    // FIXED: Changed 'saveETAData' to 'saveRankUpData'
+    // --- NEW: Calculate and display return time ---
+    const now = new Date();
+    const returnTime = new Date(now.getTime() + timeInSeconds * 1000);
+    // Format: "Oct 22 at 8:30 PM"
+    const returnString = returnTime.toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+    });
+    returnTimeEl.innerText = `Return on: ${returnString}`;
+    // --- END NEW ---
+
     saveRankUpData();
 }
 
@@ -458,7 +634,7 @@ function displayEnemyHealth() {
 }
 
 async function loadAllData() {
-    console.log("DEBUG: Starting to load all data...");
+    // console.log("DEBUG: Starting to load all data...");
 
     const manifestPromise = fetch('data-manifest.json')
         .then(response => {
@@ -489,7 +665,7 @@ async function loadAllData() {
             Object.assign(worldData, loadedWorlds);
         }
 
-        console.log("DEBUG: Manifest and world data loaded.");
+        // console.log("DEBUG: Manifest and world data loaded.");
 
         const raidPromises = manifest.raids.map(file =>
             fetch(`raids/${file}`)
@@ -516,7 +692,7 @@ async function loadAllData() {
             activityData[activity.name] = activity.data;
         });
 
-        console.log("DEBUG: Successfully loaded and combined all dynamic activity data.");
+        // console.log("DEBUG: Successfully loaded and combined all dynamic activity data.");
 
     } catch (error) {
         console.error("Fatal error during data loading process:", error);
@@ -545,6 +721,7 @@ function handleActivityChange() {
 
     if (!activity) {
         document.getElementById('activityResult').innerText = '0 / 0';
+        document.getElementById('activityTimeLimit').value = ''; // Clear time limit
         return;
     }
 
@@ -563,6 +740,7 @@ function calculateMaxStage() {
     const selection = document.getElementById('activitySelect').value;
     if (!selection) {
         document.getElementById('activityResult').innerText = '0 / 0';
+        saveRaidData(); // <-- ADDED SAVE CALL
         return;
     }
 
@@ -576,6 +754,7 @@ function calculateMaxStage() {
 
     if (!activity || yourDPS <= 0 || timeLimit <= 0) {
         resultEl.innerText = `0 / ${maxStages}`;
+        saveRaidData(); // <-- ADDED SAVE CALL
         return;
     }
 
@@ -619,6 +798,7 @@ function calculateMaxStage() {
     // --- END UPDATED LOGIC ---
 
     resultEl.innerText = `${completedStage} / ${maxStages}`;
+    saveRaidData(); // <-- ADDED SAVE CALL
 }
 
 
@@ -778,7 +958,7 @@ document.addEventListener('click', (event) => {
 
 // --- DOMContentLoaded Initializer ---
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DEBUG: DOM fully loaded. Initializing script.");
+    // console.log("DEBUG: DOM fully loaded. Initializing script.");
 
     // --- NEW BACKGROUND TOGGLE LOGIC ---
     const backgroundToggle = document.getElementById('backgroundToggle');
@@ -823,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     loadAllData().then(() => {
-        console.log("DEBUG: Data loading complete. Setting up UI.");
+        // console.log("DEBUG: Data loading complete. Setting up UI.");
         switchTab('rankup');
 
         // --- Setup Searchable Dropdowns ---
@@ -845,7 +1025,8 @@ document.addEventListener('DOMContentLoaded', () => {
         rankUpInputs.forEach(input => input.addEventListener('input', debounce(calculateRankUp, 300)));
         document.getElementById('clickerSpeed').addEventListener('change', calculateRankUp);
 
-        const ttkInputs = [document.getElementById('yourDPS')];
+        // MODIFIED: Added enemyQuantity to the listener array
+        const ttkInputs = [document.getElementById('yourDPS'), document.getElementById('enemyQuantity')];
         ttkInputs.forEach(input => { input.addEventListener('input', debounce(calculateTTK, 300)); });
 
         const activityInputs = [document.getElementById('yourDPSActivity'), document.getElementById('activityTimeLimit')];
@@ -858,15 +1039,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Load Saved Data ---
         loadRankUpData();
         loadETAData();
+        loadTTKData(); // <-- ADDED THIS
+        loadRaidData(); // <-- ADDED THIS
 
         // --- ADD ALL THE NEW CHECKLIST LOGIC BELOW ---
 
         // Check if the checklist data is loaded (from data-checklist.js)
         // --- NEW LOGGING ---
-        console.log("DEBUG: Checking for checklist data...");
+        // console.log("DEBUG: Checking for checklist data...");
         if (typeof checklistGachas !== 'undefined') {
             // --- NEW LOGGING ---
-            console.log("DEBUG: Checklist data found! Initializing checklist UI...");
+            // console.log("DEBUG: Checklist data found! Initializing checklist UI...");
 
             const checklistPanel = document.getElementById('panel-checklist');
             const gachasList = document.getElementById('gachas-list');
@@ -942,7 +1125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Function to load saved data from localStorage
             function loadChecklistData() {
                 // --- NEW LOGGING ---
-                console.log("DEBUG: loadChecklistData() called.");
+                // console.log("DEBUG: loadChecklistData() called.");
                 try {
                     const savedData = JSON.parse(localStorage.getItem(CHECKLIST_SAVE_KEY)) || {};
                     populateChecklists(savedData);
@@ -998,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Function to fill all three lists
             function populateChecklists(savedData) {
                 // --- NEW LOGGING ---
-                console.log("DEBUG: populateChecklists() called.");
+                // console.log("DEBUG: populateChecklists() called.");
                 // Clear existing lists
                 gachasList.innerHTML = '';
                 levelersList.innerHTML = '';
