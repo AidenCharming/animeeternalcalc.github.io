@@ -52,16 +52,37 @@
     
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- REMOVED the <style> block that was here -->
+
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<!-- On the body tag, changed 'items-center' to 'items-start' to align content to the top -->
+<body class="min-h-screen flex items-start justify-center p-4">
 
     <div class="w-full max-w-2xl mx-auto">
-        <header class="text-center mb-8">
+        <!-- 
+          Reduced padding from p-6 md:p-8 to p-4 md:p-6
+        -->
+        <!-- On the header tag, changed 'mb-8' (32px) to 'mb-4' (16px) to reduce the gap -->
+        <header class="text-center mb-4 p-4 md:p-6 rounded-2xl calculator-card">
             <h1 class="anime-title text-4xl md:text-5xl font-bold mb-2">Anime Eternal Calculator</h1>
             <p class="text-lg text-gray-300">Coded By: AidenCharming & Ray</p>
+            
+            <!-- NEW BACKGROUND TOGGLE -->
+            <div class="flex items-center justify-center space-x-3 mt-4">
+                <span class="text-gray-300 text-sm">Gradient BG</span>
+                <label for="backgroundToggle" class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="backgroundToggle" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-purple-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
+                <span class="text-gray-300 text-sm">Image BG</span>
+            </div>
+            <!-- END OF NEW TOGGLE -->
+
         </header>
 
-        <main class="calculator-card rounded-2xl p-6 md:p-8">
+        <!-- Reduced padding from p-6 md:p-8 to p-4 md:p-6 -->
+        <main class="calculator-card rounded-2xl p-4 md:p-6">
             <!-- Tabs Navigation -->
             <div class="flex border-b-2 border-gray-700 mb-6">
                 <button id="tab-rankup" class="tab-btn active text-sm md:text-base flex-1 py-3 px-2 focus:outline-none" onclick="switchTab('rankup')">Rank Up</button>
@@ -290,4 +311,3 @@
     </script>
 </body>
 </html>
-

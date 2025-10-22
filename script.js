@@ -626,6 +626,48 @@ document.addEventListener('click', (event) => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DEBUG: DOM fully loaded. Initializing script.");
 
+    // --- NEW BACKGROUND TOGGLE LOGIC ---
+    const backgroundToggle = document.getElementById('backgroundToggle');
+    const BACKGROUND_KEY = 'ae_image_background';
+
+    function applyBackgroundPreference(isImage) {
+        if (isImage) {
+            document.body.classList.add('image-background');
+        } else {
+            document.body.classList.remove('image-background');
+        }
+    }
+
+    // 1. Set listener for the toggle
+    if (backgroundToggle) {
+        backgroundToggle.addEventListener('change', () => {
+            const isImage = backgroundToggle.checked;
+            applyBackgroundPreference(isImage);
+            try {
+                localStorage.setItem(BACKGROUND_KEY, isImage ? '1' : '0');
+            } catch (e) {
+                console.error("Failed to save background preference", e);
+            }
+        });
+    }
+
+    // 2. Load preference on page load
+    try {
+        const savedPref = localStorage.getItem(BACKGROUND_KEY);
+        if (savedPref === '1') {
+            if (backgroundToggle) backgroundToggle.checked = true;
+            applyBackgroundPreference(true);
+        } else {
+            if (backgroundToggle) backgroundToggle.checked = false;
+            applyBackgroundPreference(false);
+        }
+    } catch (e) {
+        console.error("Failed to load background preference", e);
+        applyBackgroundPreference(false); // Default to gradient
+    }
+    // --- END OF NEW BACKGROUND TOGGLE LOGIC ---
+
+
     loadAllData().then(() => {
         console.log("DEBUG: Data loading complete. Setting up UI.");
         switchTab('rankup');
@@ -715,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     gachasTitle.innerText = `Gachas (${gachasCompleted} / ${gachasTotal})`;
                 }
                 if (levelersTitle) {
-                    levelersTitle.innerText = `Progressions (${levelersCompleted} / ${levelersTotal})`;
+                    levelersTitle.innerText = `Levelers (${levelersCompleted} / ${levelersTotal})`;
                 }
                 if (ssTitle) {
                     ssTitle.innerText = `SS Quest (${ssCompleted} / ${ssTotal})`;
@@ -825,4 +867,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 });
-
