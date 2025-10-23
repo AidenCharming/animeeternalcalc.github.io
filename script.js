@@ -48,6 +48,36 @@ function debounce(func, delay) {
     };
 }
 
+// --- NEW SYNC HELPER FUNCTION ---
+/**
+ * Creates a sync function for denomination inputs.
+ * This function is designed to be called *inside* the callback for setupDenominationSearch.
+ * It copies the source text and value to the destination and triggers the destination's callback.
+ */
+function syncDenominationInput(sourceTextId, sourceValueId, destTextId, destValueId, destCallback) {
+    const sourceTextEl = document.getElementById(sourceTextId);
+    const sourceValueEl = document.getElementById(sourceValueId);
+    const destTextEl = document.getElementById(destTextId);
+    const destValueEl = document.getElementById(destValueId);
+
+    return function() {
+        if (!sourceTextEl || !sourceValueEl || !destTextEl || !destValueEl) {
+            console.warn("Sync function missing elements, aborting.");
+            return;
+        }
+        
+        // Copy values from source to destination
+        destTextEl.value = sourceTextEl.value;
+        destValueEl.value = sourceValueEl.value;
+        
+        // Trigger the destination's calculation function
+        if (destCallback) {
+            destCallback();
+        }
+    }
+}
+
+
 // --- LocalStorage Save/Load Functions ---
 function saveRankUpData() {
     try {
@@ -1011,30 +1041,146 @@ document.addEventListener('DOMContentLoaded', () => {
         populateWorldDropdown();
         populateActivityDropdown();
 
-        // --- Denomination Searches ---
-        setupDenominationSearch('dpsDenominationInput', 'dpsDenominationValue', 'dpsDenominationList', calculateTTK);
-        setupDenominationSearch('dpsActivityDenominationInput', 'dpsActivityDenominationValue', 'dpsActivityDenominationList', calculateMaxStage);
-        setupDenominationSearch('currentEnergyDenominationInput', 'currentEnergyDenominationValue', 'currentEnergyDenominationList', calculateRankUp);
-        setupDenominationSearch('energyPerClickDenominationInput', 'energyPerClickDenominationValue', 'energyPerClickDenominationList', calculateRankUp);
-        setupDenominationSearch('currentEnergyETADenominationInput', 'currentEnergyETADenominationValue', 'currentEnergyETADenominationList', calculateEnergyETA);
-        setupDenominationSearch('targetEnergyETADenominationInput', 'targetEnergyETADenominationValue', 'targetEnergyETADenominationList', calculateEnergyETA);
-        setupDenominationSearch('energyPerClickETADenominationInput', 'energyPerClickETADenominationValue', 'energyPerClickETADenominationList', calculateEnergyETA);
+        // --- START: Combined Callbacks for Syncing ---
+        
+        // CE: RankUp -> ETA
+        const syncCE_RankToETA = syncDenominationInput(
+            'currentEnergyDenominationInput', 'currentEnergyDenominationValue',
+            'currentEnergyETADenominationInput', 'currentEnergyETADenominationValue',
+            calculateEnergyETA
+        );
+        function onRankUpCEDenomChange() {
+            calculateRankUp();
+            syncCE_RankToETA();
+        }
 
-        // --- Event Listeners for Inputs ---
-        const rankUpInputs = [document.getElementById('currentEnergy'), document.getElementById('energyPerClick')];
-        rankUpInputs.forEach(input => input.addEventListener('input', debounce(calculateRankUp, 300)));
+        // CE: ETA -> RankUp
+        const syncCE_ETAToRank = syncDenominationInput(
+            'currentEnergyETADenominationInput', 'currentEnergyETADenominationValue',
+            'currentEnergyDenominationInput', 'currentEnergyDenominationValue',
+            calculateRankUp
+        );
+        function onETACEDenomChange() {
+            calculateEnergyETA();
+            syncCE_ETAToRank();
+        }
+
+        // EPC: RankUp -> ETA
+        const syncEPC_RankToETA = syncDenominationInput(
+            'energyPerClickDenominationInput', 'energyPerClickDenominationValue',
+            'energyPerClickETADenominationInput', 'energyPerClickETADenominationValue',
+            calculateEnergyETA
+        );
+        function onRankUpEPCDenomChange() {
+            calculateRankUp();
+            syncEPC_RankToETA();
+        }
+
+        // EPC: ETA -> RankUp
+        const syncEPC_ETAToRank = syncDenominationInput(
+            'energyPerClickETADenominationInput', 'energyPerClickETADenominationValue',
+            'energyPerClickDenominationInput', 'energyPerClickDenominationValue',
+            calculateRankUp
+        );
+        function onETAEPCdenomChange() {
+            calculateEnergyETA();
+            syncEPC_ETAToRank();
+        }
+
+        // DPS: TTK -> Raid
+        const syncDPS_TTKToRaid = syncDenominationInput(
+            'dpsDenominationInput', 'dpsDenominationValue',
+            'dpsActivityDenominationInput', 'dpsActivityDenominationValue',
+            calculateMaxStage
+        );
+        function onTTKDenomChange() {
+            calculateTTK();
+            syncDPS_TTKToRaid();
+        }
+        
+        // DPS: Raid -> TTK
+        const syncDPS_RaidToTTK = syncDenominationInput(
+            'dpsActivityDenominationInput', 'dpsActivityDenominationValue',
+            'dpsDenominationInput', 'dpsDenominationValue',
+            calculateTTK
+        );
+        function onRaidDenomChange() {
+            calculateMaxStage();
+            syncDPS_RaidToTTK();
+        }
+        // --- END: Combined Callbacks for Syncing ---
+
+
+        // --- Denomination Searches (Now use combined callbacks) ---
+        setupDenominationSearch('dpsDenominationInput', 'dpsDenominationValue', 'dpsDenominationList', onTTKDenomChange);
+        setupDenominationSearch('dpsActivityDenominationInput', 'dpsActivityDenominationValue', 'dpsActivityDenominationList', onRaidDenomChange);
+        setupDenominationSearch('currentEnergyDenominationInput', 'currentEnergyDenominationValue', 'currentEnergyDenominationList', onRankUpCEDenomChange);
+        setupDenominationSearch('energyPerClickDenominationInput', 'energyPerClickDenominationValue', 'energyPerClickDenominationList', onRankUpEPCDenomChange);
+        setupDenominationSearch('currentEnergyETADenominationInput', 'currentEnergyETADenominationValue', 'currentEnergyETADenominationList', onETACEDenomChange);
+        setupDenominationSearch('targetEnergyETADenominationInput', 'targetEnergyETADenominationValue', 'targetEnergyETADenominationList', calculateEnergyETA); // Not linked
+        setupDenominationSearch('energyPerClickETADenominationInput', 'energyPerClickETADenominationValue', 'energyPerClickETADenominationList', onETAEPCdenomChange);
+
+        
+        // --- Event Listeners for Inputs (Now with syncing) ---
+    
+        // RankUp Tab Inputs
+        const rankUpCE = document.getElementById('currentEnergy');
+        const rankUpEPC = document.getElementById('energyPerClick');
+        // Sync RankUp CE -> ETA CE
+        rankUpCE.addEventListener('input', debounce(() => {
+            calculateRankUp();
+            document.getElementById('currentEnergyETA').value = rankUpCE.value;
+            calculateEnergyETA();
+        }, 300));
+        // Sync RankUp EPC -> ETA EPC
+        rankUpEPC.addEventListener('input', debounce(() => {
+            calculateRankUp();
+            document.getElementById('energyPerClickETA').value = rankUpEPC.value;
+            calculateEnergyETA();
+        }, 300));
         document.getElementById('clickerSpeed').addEventListener('change', calculateRankUp);
 
-        // MODIFIED: Added enemyQuantity to the listener array
-        const ttkInputs = [document.getElementById('yourDPS'), document.getElementById('enemyQuantity')];
-        ttkInputs.forEach(input => { input.addEventListener('input', debounce(calculateTTK, 300)); });
+        // TTK Tab Inputs
+        const ttkDPS = document.getElementById('yourDPS');
+        const ttkQuantity = document.getElementById('enemyQuantity');
+        // Sync TTK DPS -> Raid DPS
+        ttkDPS.addEventListener('input', debounce(() => {
+            calculateTTK();
+            document.getElementById('yourDPSActivity').value = ttkDPS.value;
+            calculateMaxStage();
+        }, 300));
+        ttkQuantity.addEventListener('input', debounce(calculateTTK, 300)); // No sync needed
 
-        const activityInputs = [document.getElementById('yourDPSActivity'), document.getElementById('activityTimeLimit')];
-        activityInputs.forEach(input => input.addEventListener('input', debounce(calculateMaxStage, 300)));
+        // Raid Tab Inputs
+        const raidDPS = document.getElementById('yourDPSActivity');
+        const raidTime = document.getElementById('activityTimeLimit');
+        // Sync Raid DPS -> TTK DPS
+        raidDPS.addEventListener('input', debounce(() => {
+            calculateMaxStage();
+            document.getElementById('yourDPS').value = raidDPS.value;
+            calculateTTK();
+        }, 300));
+        raidTime.addEventListener('input', debounce(calculateMaxStage, 300)); // No sync needed
 
-        const etaInputs = [document.getElementById('currentEnergyETA'), document.getElementById('targetEnergyETA'), document.getElementById('energyPerClickETA')];
-        etaInputs.forEach(input => input.addEventListener('input', debounce(calculateEnergyETA, 300)));
+        // ETA Tab Inputs
+        const etaCE = document.getElementById('currentEnergyETA');
+        const etaTarget = document.getElementById('targetEnergyETA');
+        const etaEPC = document.getElementById('energyPerClickETA');
+        // Sync ETA CE -> RankUp CE
+        etaCE.addEventListener('input', debounce(() => {
+            calculateEnergyETA();
+            document.getElementById('currentEnergy').value = etaCE.value;
+            calculateRankUp();
+        }, 300));
+        etaTarget.addEventListener('input', debounce(calculateEnergyETA, 300)); // Not linked
+        // Sync ETA EPC -> RankUp EPC
+        etaEPC.addEventListener('input', debounce(() => {
+            calculateEnergyETA();
+            document.getElementById('energyPerClick').value = etaEPC.value;
+            calculateRankUp();
+        }, 300));
         document.getElementById('clickerSpeedETA').addEventListener('change', calculateEnergyETA);
+
 
         // --- Load Saved Data ---
         loadRankUpData();
@@ -1253,4 +1399,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 });
-
