@@ -1,5 +1,5 @@
 /* Anime Eternal theme: fonts + neon energy visuals */
-@import url('https://fonts.googleapis.com/css2?family=Yusei+Magic&family=Orbitron:wght@500;700&family=Poppins:wght@300;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;600&family=Metal+Mania&display=swap');
 
 :root {
     /* Anime Eternal palette */
@@ -66,7 +66,7 @@ body {
 
 /* Title / logo styling to feel like an anime game banner */
 .anime-title {
-    font-family: 'Yusei Magic', 'Orbitron', sans-serif;
+    font-family: "Metal Mania", system-ui;
     font-size: 1.25rem;
     letter-spacing: 0.6px;
     color: var(--muted);
@@ -77,7 +77,6 @@ body {
     padding: 0.25rem 0.5rem;
     border-radius: 8px;
     background: linear-gradient(90deg, rgba(124,58,237,0.03), rgba(0,212,255,0.02));
-    border: 1px solid rgba(255,255,255,0.02);
 }
 
 /* Tabs with neon underline and soft glow */
