@@ -1,5 +1,5 @@
 /* Anime Eternal theme: fonts + neon energy visuals */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;600&family=Metal+Mania&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter&family=Metal+Mania&display=swap');
 
 :root {
     /* Anime Eternal palette */
@@ -16,7 +16,7 @@
 
 /* Force chosen fonts */
 body {
-    font-family: 'Poppins', 'Yusei Magic', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     background-color: var(--bg-1);
     color: var(--muted);
     background-image:
