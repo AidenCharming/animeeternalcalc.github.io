@@ -270,5 +270,17 @@
             "Albedia": 4.14e+155,
             "Anz Ool Gawn": 4.14e+159
         }
+    },
+	    "Thriller Park": {
+        "enemies": {
+            "Robini": 2.25e+155,
+            "Perina": 1.79e+156,
+            "Franq": 3.23e+157,
+            "Brunk": 3.48e+158,
+            "Nightmare Loffy": 3.67e+159,
+            "Orrs": 3.88e+160,
+            "Riuma": 3.87e+164,
+            "Gekar Morra": 3.88e+168
+        }
     }
 }

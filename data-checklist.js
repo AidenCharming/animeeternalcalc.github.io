@@ -39,7 +39,9 @@ const checklistGachas = [
   { id: 'g33', name: 'Threat Level' },
   { id: 'g34', name: 'Punch' },
   { id: 'g35', name: 'Adventurer' },
-  { id: 'g36', name: 'Magic Tier' }
+  { id: 'g36', name: 'Magic Tier' },
+  { id: 'g37', name: 'Thriller Zombie' },
+  { id: 'g38', name: 'Nightmare Evolution' }
 ];
 
 // Data from Columns F-G (Levelers) - 60 items
@@ -83,7 +85,7 @@ const checklistLevelers = [
   { id: 'l37', name: 'Saiyan (25)' },
   { id: 'l38', name: 'Eternal Dragon (50)' },
   { id: 'l39', name: 'Dragon Energy (50)' },
-  { id: 'l40', name: 'Dragon Damage (50)' },
+  { id: 'l40', name: 'Dragon Damage (500)' },
   { id: 'l41', name: 'Luck Obelisk (15)' },
   { id: 'l42', name: 'Reiatsu Leveling (25)' },
   { id: 'l43', name: 'Zanpakuto Leveling (25)' },
