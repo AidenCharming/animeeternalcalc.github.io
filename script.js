@@ -458,7 +458,7 @@ function calculateTTK() {
     }
 
     // --- Single Kill Calculation ---
-    const timeInSeconds = enemyHealth / yourDPS;
+    const timeInSeconds = enemyHealth / yourDPS; // This is your personal kill time
 
     const days = Math.floor(timeInSeconds / 86400);
     const hours = Math.floor((timeInSeconds % 86400) / 3600);
@@ -475,7 +475,26 @@ function calculateTTK() {
 
     // --- Quest Kill Calculation ---
     if (quantity > 0) {
-        const totalTimeInSeconds = timeInSeconds * quantity;
+        
+        // --- START: MODIFIED LOGIC FOR RESPAWN CAP ---
+        // These are the game mechanics you mentioned
+        const ENEMY_RESPAWN_TIME = 3; // 3 seconds
+        const ENEMY_GROUP_SIZE = 4;   // 4 enemies per group
+
+        // Calculate the spawn-limited time per kill (e.g., 3s / 4 enemies = 0.75s per kill)
+        const respawnLimitPerKill = ENEMY_RESPAWN_TIME / ENEMY_GROUP_SIZE;
+
+        // Your personal time to kill one enemy (calculated above)
+        const yourTimePerKill = timeInSeconds; 
+
+        // The effective time per kill is the SLOWER of your time and the respawn time.
+        // This creates the "cap" you mentioned.
+        const effectiveTimePerKill = Math.max(yourTimePerKill, respawnLimitPerKill);
+
+        // Use the effective time for the total calculation
+        const totalTimeInSeconds = effectiveTimePerKill * quantity;
+        // --- END: MODIFIED LOGIC ---
+
 
         const totalDays = Math.floor(totalTimeInSeconds / 86400);
         const totalHours = Math.floor((totalTimeInSeconds % 86400) / 3600);
@@ -1260,7 +1279,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     gachasTitle.innerText = `Gachas (${gachasCompleted} / ${gachasTotal})`;
                 }
                 if (levelersTitle) {
-                    levelersTitle.innerText = `Progressions (${levelersCompleted} / ${levelersTotal})`;
+                    levelersTitle.innerText = `Progressions (${levelDOGOClersCompleted} / ${levelersTotal})`;
                 }
                 if (ssTitle) {
                     ssTitle.innerText = `SS Quest (${ssCompleted} / ${ssTotal})`;
@@ -1399,3 +1418,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 });
+
