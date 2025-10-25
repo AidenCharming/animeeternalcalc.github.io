@@ -1279,7 +1279,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     gachasTitle.innerText = `Gachas (${gachasCompleted} / ${gachasTotal})`;
                 }
                 if (levelersTitle) {
-                    levelersTitle.innerText = `Progressions (${levelDOGOClersCompleted} / ${levelersTotal})`;
+                    // --- THIS IS THE FIX ---
+                    // Changed 'levelDOGOClersCompleted' to 'levelersCompleted'
+                    levelersTitle.innerText = `Progressions (${levelersCompleted} / ${levelersTotal})`;
+                    // --- END OF FIX ---
                 }
                 if (ssTitle) {
                     ssTitle.innerText = `SS Quest (${ssCompleted} / ${ssTotal})`;
@@ -1418,4 +1421,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 });
-
