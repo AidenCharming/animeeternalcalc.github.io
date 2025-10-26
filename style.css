@@ -265,12 +265,12 @@ body {
     color: #888;
 }
 
-/* --- ADD THIS AT THE END OF THE FILE --- */
-
 /* New styles for the Image Background (toggled by JS) */
 body.image-background {
   /* This removes the old gradients and sets your new image */
-  background-image: url('noFilter.webp');
+  /* --- THIS IS THE FIX --- */
+  background-image: url('background.webp');
+  /* --- END OF FIX --- */
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;
