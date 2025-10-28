@@ -254,6 +254,8 @@ function saveTTKData() {
         localStorage.setItem('ae_ttk_dpsDenomInput', document.getElementById('dpsDenominationInput').value);
         localStorage.setItem('ae_ttk_dpsDenomValue', document.getElementById('dpsDenominationValue').value);
         localStorage.setItem('ae_ttk_quantity', document.getElementById('enemyQuantity').value);
+        // *** ADDED THIS LINE ***
+        localStorage.setItem('ae_ttk_fourSpot', document.getElementById('fourSpotFarming').checked);
     } catch(e) {
         console.error("Failed to save TTK data to localStorage", e);
     }
@@ -276,6 +278,14 @@ function loadTTKData() {
 
         const quantity = localStorage.getItem('ae_ttk_quantity');
         if (quantity) document.getElementById('enemyQuantity').value = quantity;
+        
+        // *** ADDED THIS BLOCK ***
+        const fourSpot = localStorage.getItem('ae_ttk_fourSpot');
+        if (fourSpot !== null) {
+            document.getElementById('fourSpotFarming').checked = (fourSpot === 'true');
+        }
+        // *** END OF ADDED BLOCK ***
+
 
         // Load world and enemy *after* other fields
         const world = localStorage.getItem('ae_ttk_world');
@@ -444,6 +454,9 @@ function calculateTTK() {
     // NEW: Get quantity
     const quantity = Math.floor(getNumberValue('enemyQuantity')) || 0;
 
+    // *** ADDED THIS LINE ***
+    const isFourSpot = document.getElementById('fourSpotFarming').checked;
+
     // Get result elements
     const singleResultEl = document.getElementById('ttkResult');
     const questResultEl = document.getElementById('questTTKResult');
@@ -479,9 +492,12 @@ function calculateTTK() {
         // --- START: MODIFIED LOGIC FOR RESPAWN CAP ---
         // These are the game mechanics you mentioned
         const ENEMY_RESPAWN_TIME = 3; // 3 seconds
-        const ENEMY_GROUP_SIZE = 4;   // 4 enemies per group
+        // *** THIS LINE IS NOW DYNAMIC ***
+        const ENEMY_GROUP_SIZE = isFourSpot ? 4 : 1;   // 4 enemies if checked, 1 if not
 
-        // Calculate the spawn-limited time per kill (e.g., 3s / 4 enemies = 0.75s per kill)
+        // Calculate the spawn-limited time per kill
+        // if 4-spot: 3s / 4 enemies = 0.75s per kill
+        // if 1-spot: 3s / 1 enemy = 3s per kill
         const respawnLimitPerKill = ENEMY_RESPAWN_TIME / ENEMY_GROUP_SIZE;
 
         // Your personal time to kill one enemy (calculated above)
@@ -1162,6 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // TTK Tab Inputs
         const ttkDPS = document.getElementById('yourDPS');
         const ttkQuantity = document.getElementById('enemyQuantity');
+        const ttkFourSpot = document.getElementById('fourSpotFarming'); // <-- Added this
         // Sync TTK DPS -> Raid DPS
         ttkDPS.addEventListener('input', debounce(() => {
             calculateTTK();
@@ -1169,6 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             calculateMaxStage();
         }, 300));
         ttkQuantity.addEventListener('input', debounce(calculateTTK, 300)); // No sync needed
+        ttkFourSpot.addEventListener('change', calculateTTK); // <-- Added this listener
 
         // Raid Tab Inputs
         const raidDPS = document.getElementById('yourDPSActivity');
@@ -1421,3 +1439,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 });
+
