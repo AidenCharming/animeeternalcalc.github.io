@@ -484,7 +484,12 @@ function calculateTTK() {
     if (minutes > 0 || hours > 0 || days > 0) resultString += `${minutes}m `;
     resultString += `${seconds}s`;
     
-    singleResultEl.innerText = resultString.trim();
+    // *** NEW: Check for Instakill ***
+    if (resultString.trim() === '0s') {
+        singleResultEl.innerText = "Instakill";
+    } else {
+        singleResultEl.innerText = resultString.trim();
+    }
 
     // --- Quest Kill Calculation ---
     if (quantity > 0) {
@@ -501,7 +506,8 @@ function calculateTTK() {
         const respawnLimitPerKill = ENEMY_RESPAWN_TIME / ENEMY_GROUP_SIZE;
 
         // Your personal time to kill one enemy (calculated above)
-        const yourTimePerKill = timeInSeconds; 
+        // *** NEW: Add 1s "hit delay" for quest calculation ***
+        const yourTimePerKill = timeInSeconds + 0.5; 
 
         // The effective time per kill is the SLOWER of your time and the respawn time.
         // This creates the "cap" you mentioned.
@@ -1439,4 +1445,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 });
+
 
