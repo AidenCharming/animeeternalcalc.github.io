@@ -107,7 +107,7 @@ const denominations = [
     { name: 'UNCENT', value: 1e306 }
 ];
 
-// Complete Rank Requirements List - CORRECTED as of Oct 21, 2025 from user instruction.
+// Complete Rank Requirements List
 const rankRequirements = {
     "0": 0, // Starting rank
     "1": 9.00e3, "2": 4.50e4, "3": 2.43e5, "4": 1.41e6, "5": 8.75e6, "6": 5.78e7, "7": 4.05e8, "8": 3.00e9, "9": 2.34e10, "10": 1.17e11,
@@ -125,3 +125,291 @@ const rankRequirements = {
 	"121": 1.80E+109, "122": 15.00E+109, "123": 5.00e+111, "124": 50.00e+111, "125": 900.00e+111
 };
 
+// --- NEWLY ADDED ---
+// World data is now static and part of this core file.
+const worldData = {
+    "Earth City": {
+        "enemies": {
+            "Kriluni": 5000.0,
+            "Ymicha": 230000.0,
+            "Tian Shan": 5000000.0,
+            "Kohan": 30000000.0,
+            "Picco": 100000000.0,
+            "Koku": 240000000.0,
+            "Kid Kohan": 2500000000000000.0
+        }
+    },
+    "Windmill Island": {
+        "enemies": {
+            "Nomi": 4500000000.0,
+            "Usup": 70000000000.0,
+            "Robins": 250000000000.0,
+            "Senji": 1200000000000.0,
+            "Zaro": 50000000000000.0,
+            "Loffy": 120000000000000.0,
+            "Shanks": 5e+21
+        }
+    },
+    "Soul Society": {
+        "enemies": {
+            "Hime": 150000000000000.0,
+            "Ichige": 2500000000000000.0,
+            "Uryua": 5.5e+16,
+            "Rakiu": 1.6e+17,
+            "Yoichi": 8.5e+17,
+            "Kahara": 1e+18,
+            "Eizen": 2.5e+24
+        }
+    },
+    "Cursed School": {
+        "enemies": {
+            "Itodo": 1.5e+18,
+            "Nebara": 5e+19,
+            "Magum": 1.1e+20,
+            "Meki": 4.75e+20,
+            "Tage": 9.69e+21,
+            "Gajo": 5e+22,
+            "Sakuni": 1.2e+26
+        }
+    },
+    "Slayer Village": {
+        "enemies": {
+            "Nazuki": 1e+23,
+            "Tenjar": 5e+23,
+            "Zentsu": 2.5e+24,
+            "Insake": 1.25e+25,
+            "Tamoka": 6.26e+25,
+            "Shinabe": 3.12e+26,
+            "Rangoki": 3.12e+34
+        }
+    },
+    "Solo Island": {
+        "enemies": {
+            "Weak Sung": 6.25e+26,
+            "Green Goblin": 3.12e+27,
+            "White Tiger": 1.56e+28,
+            "Cha": 7.81e+28,
+            "Choi": 3.91e+29,
+            "Solo Sung": 1.95e+30,
+            "Statue of God": 1.95e+38
+        }
+    },
+    "Clover Village": {
+        "enemies": {
+            "Noalle": 7.8e+30,
+            "Megna": 8e+31,
+            "Finrel": 8.43e+32,
+            "Aste": 9.08e+33,
+            "Yune": 9.57e+34,
+            "Yemi": 1.01e+36,
+            "Novi Chroni": 1.01e+44
+        }
+    },
+    "Leaf Village": {
+        "enemies": {
+            "Sekuri": 2.69e+35,
+            "Kid Norto": 2.29e+36,
+            "Kid Seske": 2.41e+37,
+            "Kakashki": 2.54e+38,
+            "Jiria": 2.68e+39,
+            "Tsuni": 2.82e+40,
+            "Itechi": 2.82e+48,
+            "Madera": 5.64e+48
+        }
+    },
+    "Spirit Residence": {
+        "enemies": {
+            "Ken": 5e+40,
+            "Aira": 4e+41,
+            "Jiji": 4.22e+42,
+            "Momo": 4.44e+43,
+            "Alien": 4.68e+44,
+            "Saiko": 4.94e+45,
+            "Ken Turbo": 4.94e+53
+        }
+    },
+    "Magic Hunter City": {
+        "enemies": {
+            "Lero": 3e+46,
+            "Gone": 2.4e+47,
+            "Karapik": 2.53e+48,
+            "Killas": 2.67e+49,
+            "Hisoker": 2.81e+50,
+            "Illumio": 2.96e+51,
+            "Killas Godspeed": 2.96e+59
+        }
+    },
+    "Titan City": {
+        "enemies": {
+            "Armin": 5e+51,
+            "Annie": 4e+52,
+            "Mikala": 4.22e+53,
+            "Rainar": 4.44e+54,
+            "Ervin": 4.68e+55,
+            "Lavi": 4.94e+56,
+            "Eran": 4.94e+64
+        }
+    },
+    "Village of Sins": {
+        "enemies": {
+            "Diyana": 9.9e+56,
+            "Kyng": 7.92e+57,
+            "Gowen": 8.35e+58,
+            "Merlu": 8.8e+59,
+            "Bane": 9.27e+60,
+            "Melyon": 9.77e+61,
+            "Esanor": 9.77e+69
+        }
+    },
+    "Kaiju Base": {
+        "enemies": {
+            "Kefka": 5e+62,
+            "Rano": 4.5e+63,
+            "Ihero": 4.74e+64,
+            "Kikoi": 5e+65,
+            "Sosiro": 5.27e+66,
+            "Meena": 5.55e+67,
+            "Number 8": 5.55e+75
+        }
+    },
+    "Tempest Capital": {
+        "enemies": {
+            "Gobito": 2.73e+68,
+            "Gabido": 2.73e+69,
+            "Sakai": 4.1e+70,
+            "Hakamaru": 4.32e+71,
+            "Benitaro": 4.55e+72,
+            "Rimaru": 4.79e+73,
+            "Valzora": 4.79e+81
+        }
+    },
+    "Virtual City": {
+        "enemies": {
+            "Lisbeta": 9.58e+73,
+            "Silica": 7.66e+74,
+            "Klain": 8.08e+75,
+            "Yai": 8.71e+76,
+            "Asana": 9.18e+77,
+            "Beater": 9.67e+78,
+            "The Paladin": 9.67e+86
+        }
+    },
+    "Cairo": {
+        "enemies": {
+            "Speedy": 1.93e+79,
+            "Cesar": 1.54e+80,
+            "Joseph": 1.63e+81,
+            "Polyreff": 1.75e+82,
+            "Avdoli": 1.85e+83,
+            "Jokaro": 1.94e+84,
+            "Dino": 1.95e+92
+        }
+    },
+    "Ghoul City": {
+        "enemies": {
+            "Hideyo": 6.79e+85,
+            "Joozu": 5.43e+86,
+            "Madyo": 5.73e+87,
+            "Kotaro": 6.17e+88,
+            "Toaoka": 6.51e+89,
+            "Kanny": 6.86e+90,
+            "Arama": 6.86e+98
+        }
+    },
+    "Chainsaw City": {
+        "enemies": {
+            "Kabeni": 3.95e+93,
+            "Benji": 4.15e+94,
+            "Powa": 4.36e+95,
+            "Aoki": 4.59e+96,
+            "Raza": 4.83e+97,
+            "Makomi": 5.09e+98,
+            "Mr Chainsaw": 5.09e+102,
+            "Hero of Hell": 5.09e+106
+        }
+    },
+    "Tokyo Empire": {
+        "enemies": {
+            "Akiki": 2.04e+99,
+            "Arter": 1.63e+100,
+            "Shinro": 1.47e+101,
+            "Tameki": 1.58e+102,
+            "Iriso": 1.67e+103,
+            "Witch Queen": 1.75e+104,
+            "Leonardo": 1.76e+108,
+            "Bansho": 1.76e+112
+        }
+    },
+    "Green Planet": {
+        "enemies": {
+            "Bulam": 1.76e+111,
+            "Young Kohan": 1.41e+112,
+            "Armored Kriluni": 1.27e+113,
+            "Giniy": 1.37e+114,
+            "Vegeti": 1.44e+115,
+            "Lord Frizzi": 1.52e+116,
+            "Koku SSJ": 1.52e+120,
+            "Frizzi Final Form": 1.52e+124
+        }
+    },
+    "Hollow World": {
+        "enemies": {
+            "Ohime": 1.01e+120,
+            "Ichiga": 8e+120,
+            "Chaddo": 7.28e+121,
+            "Zayrel": 7.85e+122,
+            "Uloqi": 8.27e+123,
+            "Grimmi": 8.72e+124,
+            "Cifer": 8.72e+127,
+            "Vasto Ichige": 8.72e+131
+        }
+    },
+    "Shadow Academy": {
+        "enemies": {
+            "Cyd": 3.54e+127,
+            "Zeta": 2.83e+128,
+            "Delta": 2.55e+129,
+            "Beta": 2.75e+130,
+            "Gamma": 2.9e+131,
+            "Alpha": 3.05e+132,
+            "Blood Queen": 3.05e+136,
+            "Shadow": 3.05e+140
+        }
+    },
+    "Z City": {
+        "enemies": {
+            "Crabby": 2.29e+136,
+            "Mantis": 4.58e+137,
+            "Tatsura": 9.16e+138,
+            "Ganos": 1.83e+140,
+            "King of Seas": 3.66e+141,
+            "Bald Man": 7.33e+142,
+            "Lord Boro": 7.33e+146,
+            "Galaxy Hunter": 7.33e+150
+        }
+    },
+    "Great Tomb": {
+        "enemies": {
+            "Pandoros Actor": 4.8e+146,
+            "Auro": 3.84e+147,
+            "Maro": 3.46e+148,
+            "Sebes": 3.73e+149,
+            "Shaltir": 3.93e+150,
+            "Demurge": 4.14e+151,
+            "Albedia": 4.14e+155,
+            "Anz Ool Gawn": 4.14e+159
+        }
+    },
+	"Thriller Park": {
+        "enemies": {
+            "Robini": 2.25e+155,
+            "Perina": 1.80e+156,
+            "Franq": 3.24e+157,
+            "Brukk": 3.49e+158,
+            "Nightmare Loffy": 3.68e+159,
+            "Orrs": 3.88e+160,
+            "Riuma": 3.88e+164,
+            "Gekar Morra": 3.88e+168
+        }
+    }
+};

@@ -41,7 +41,10 @@ const checklistGachas = [
   { id: 'g35', name: 'Adventurer' },
   { id: 'g36', name: 'Magic Tier' },
   { id: 'g37', name: 'Thriller Zombie' },
-  { id: 'g38', name: 'Nightmare Evolution' }
+  { id: 'g38', name: 'Nightmare Evolution' },
+  { id: 'g39', name: 'Zombie Crafts' },
+  { id: 'g40', name: 'Special Zombie' },
+  { id: 'g41', name: 'Zombie Booster' }
 ];
 
 // Data from Columns F-G (Levelers) - 60 items
@@ -100,7 +103,10 @@ const checklistLevelers = [
   { id: 'l52', name: 'Mana Growth (100)' },
   { id: 'l53', name: 'Ultimate Cast (100)' },
   { id: 'l54', name: 'Adventurer Level (50)' },
-  { id: 'l55', name: 'Magic Tier Level (50)' }
+  { id: 'l55', name: 'Magic Tier Level (50)' },
+  { id: '156', name: 'Demon Fruit Leveling (4)' },
+  { id: '157', name: 'Special Zombie Crafting (10)' },
+  { id: '158', name: 'Special Zombie Fusion (2)' }
 ];
 
 // Data from Columns J-K (Secret Shinies) - 24 items
@@ -128,6 +134,7 @@ const checklistSS = [
   { id: 's21', name: 'Vasto Ichige' },
   { id: 's22', name: 'Shadow' },
   { id: 's23', name: 'Galaxy Hunter' },
-  { id: 's24', name: 'Anz Ool Gawn' }
+  { id: 's24', name: 'Anz Ool Gawn' },
+  { id: 's25', name: 'Gekar Morra' }
 ];
 

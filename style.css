@@ -1,5 +1,5 @@
-/* Anime Eternal theme: fonts + neon energy visuals */
-@import url('https://fonts.googleapis.com/css2?family=Inter&family=Metal+Mania&display=swap');
+/* OPTIMIZATION: Removed the '@import' for fonts from this file. 
+   It's now loaded faster in index.html. */
 
 :root {
     /* Anime Eternal palette */

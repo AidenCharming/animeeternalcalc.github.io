@@ -48,6 +48,11 @@
       else document.documentElement.classList.add('ae-high-power');
     })();
     </script>
+
+    <!-- OPTIMIZATION: Faster font loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter&family=Metal+Mania&display=swap" rel="stylesheet">
     
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="style.css">
@@ -275,7 +280,10 @@
                 </div>
             </div>
 
-            <!-- ADD THIS ENTIRE NEW PANEL FOR THE CHECKLIST -->
+            <!-- 
+              PASTE THE NEW PANEL CODE HERE 
+              (This is the part that is missing)
+            -->
             <div id="panel-checklist" class="hidden space-y-6">
                 <p class="text-center text-gray-300 -mt-2">Your 100% completion progress. Items are saved in your browser.</p>
                 
@@ -318,12 +326,16 @@
         </main>
     </div>
     
-    <!-- Load static data files -->
-    <script src="data-core.js"></script>
-    <script src="data-checklist.js"></script>
+    <!-- 
+      DELETE YOUR OLD <script> TAGS AND REPLACE 
+      THEM WITH THESE THREE. The 'defer' is important.
+    -->
+    <script src="data-core.js" defer></script>
+    <script src="data-checklist.js" defer></script>
     
-    <!-- The main logic file will now fetch all JSON data, including worlds. -->
-    <script src="script.js"></script>
+    <!-- OPTIMIZATION: Load main script with 'defer'.
+         It will correctly wait for the files above before executing. -->
+    <script src="script.js" defer></script>
 
     <!-- Ko-fi Floating Widget -->
     <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
@@ -338,3 +350,5 @@
     </script>
 </body>
 </html>
+
+
