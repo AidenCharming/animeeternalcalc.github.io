@@ -26,7 +26,6 @@ function switchTab(activeTab) {
 
 // Global objects to hold dynamically loaded data.
 // 'worldData' is now defined in data-core.js!
-// 'activityData' will be populated by loadAllData().
 const activityData = {};
 
 
@@ -1138,27 +1137,21 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTTKData();
     // loadRaidData(); // <-- Moved into .then()
 
-    // --- Checklist Logic (Refactored for element cache) ---
-    if (typeof checklistGachas !== 'undefined') {
-        console.log("DEBUG: Checklist data found! Initializing checklist UI...");
+    // --- START: NEW CHECKLIST LOGIC ---
+    if (typeof checklistDataByWorld !== 'undefined' && typeof worldData !== 'undefined') {
+        console.log("DEBUG: World and Checklist data found! Initializing new checklist UI...");
 
-        // --- 
-        // THE FIX IS HERE! 
-        // I am now using el['panel-checklist'] (bracket notation)
-        // for all IDs that have a hyphen in them.
-        // ---
         const checklistPanel = el['panel-checklist']; 
         if (!checklistPanel) {
             console.error("DEBUG: Checklist panel 'panel-checklist' not found in HTML. Checklist functionality will be disabled.");
-            return; // Stop running checklist logic if the panel doesn't exist
+            return;
         }
 
-        const gachasList = el['gachas-list'];
-        const levelersList = el['levelers-list'];
-        const ssList = el['ss-list'];
-        const gachasTitle = el['gachas-title'];
-        const levelersTitle = el['levelers-title'];
-        const ssTitle = el['ss-title'];
+        const checklistContainer = el['checklist-worlds-container'];
+        if (!checklistContainer) {
+             console.error("DEBUG: Checklist container 'checklist-worlds-container' not found in HTML.");
+            return;
+        }
 
         const CHECKLIST_SAVE_KEY = 'ae_checklist_progress';
 
@@ -1174,72 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-
-        function updateChecklistTitles(savedData) {
-            if (!savedData) {
-                try {
-                    savedData = JSON.parse(localStorage.getItem(CHECKLIST_SAVE_KEY)) || {};
-                } catch (e) {
-                    savedData = {};
-                }
-            }
-
-            const gachasTotal = checklistGachas.length;
-            const levelersTotal = checklistLevelers.length;
-            const ssTotal = checklistSS.length;
-
-            let gachasCompleted = 0;
-            let levelersCompleted = 0;
-            let ssCompleted = 0;
-
-            Object.keys(savedData).forEach(id => {
-                if (id.startsWith('g')) {
-                    gachasCompleted++;
-                } else if (id.startsWith('l')) {
-                    levelersCompleted++;
-                } else if (id.startsWith('s')) {
-                    ssCompleted++;
-                }
-            });
-
-            if (gachasTitle) {
-                gachasTitle.innerText = `Gachas (${gachasCompleted} / ${gachasTotal})`;
-            }
-            if (levelersTitle) {
-                levelersTitle.innerText = `Progressions (${levelersCompleted} / ${levelersTotal})`;
-            }
-            if (ssTitle) {
-                ssTitle.innerText = `SS Quest (${ssCompleted} / ${ssTotal})`;
-            }
-        }
-
-        function loadChecklistData() {
-            try {
-                const savedData = JSON.parse(localStorage.getItem(CHECKLIST_SAVE_KEY)) || {};
-                populateChecklists(savedData);
-                updateChecklistTitles(savedData);
-            } catch (e) {
-                console.error("Failed to load checklist data:", e);
-                populateChecklists({});
-                updateChecklistTitles({});
-            }
-        }
-
-        function saveChecklistData() {
-            try {
-                const savedData = {};
-                if (!checklistPanel) return; // Safety check
-                const checkboxes = checklistPanel.querySelectorAll('input[type="checkbox"]:checked');
-                checkboxes.forEach(cb => {
-                    savedData[cb.id] = true;
-                });
-                localStorage.setItem(CHECKLIST_SAVE_KEY, JSON.stringify(savedData));
-                updateChecklistTitles(savedData);
-            } catch (e) {
-                console.error("Failed to save checklist data:", e);
-            }
-        }
-
+        
         function createChecklistItem(item, savedData) {
             const label = document.createElement('label');
             label.className = 'checklist-item';
@@ -1258,32 +1186,160 @@ document.addEventListener('DOMContentLoaded', () => {
             label.appendChild(span);
 
             styleChecklistItem(checkbox, checkbox.checked);
-
             return label;
         }
 
-        function populateChecklists(savedData) {
-            if (gachasList) gachasList.innerHTML = '';
-            if (levelersList) levelersList.innerHTML = '';
-            if (ssList) ssList.innerHTML = '';
+        function updateAllWorldTitles(savedData) {
+            if (!savedData) {
+                try {
+                    savedData = JSON.parse(localStorage.getItem(CHECKLIST_SAVE_KEY)) || {};
+                } catch (e) {
+                    savedData = {};
+                }
+            }
 
-            if (gachasList && typeof checklistGachas !== 'undefined') {
-                checklistGachas.forEach(item => {
-                    gachasList.appendChild(createChecklistItem(item, savedData));
+            // Get all world names from the checklist data
+            const worldNames = Object.keys(checklistDataByWorld);
+
+            for (const worldName of worldNames) {
+                const world = checklistDataByWorld[worldName];
+                const worldNameId = worldName.replace(/\s+/g, '-').toLowerCase();
+                const worldTitleEl = document.getElementById(`world-title-${worldNameId}`);
+
+                let totalItems = 0;
+                let completedItems = 0;
+
+                // UPDATED: Added 'auras' and 'accessories'. Fixed 'shinies' typo to 'ssRank'.
+                const categories = ['gachas', 'progressions', 'ssRank', 'auras', 'accessories'];
+                categories.forEach(catKey => {
+                    if (world[catKey]) {
+                        totalItems += world[catKey].length;
+                        world[catKey].forEach(item => {
+                            if (savedData[item.id]) {
+                                completedItems++;
+                            }
+                        });
+                        
+                        // Update sub-category titles
+                        const subTitleEl = document.getElementById(`${catKey}-title-${worldNameId}`);
+                        if(subTitleEl) {
+                            const subTotal = world[catKey].length;
+                            const subCompleted = world[catKey].filter(item => savedData[item.id]).length;
+                            // Capitalize first letter
+                            let catName = catKey.charAt(0).toUpperCase() + catKey.slice(1);
+                            if (catKey === 'ssRank') catName = 'SS Rank'; // Special case
+                            subTitleEl.innerText = `${catName} (${subCompleted} / ${subTotal})`;
+                        }
+                    }
                 });
-            }
-            if (levelersList && typeof checklistLevelers !== 'undefined') {
-                checklistLevelers.forEach(item => {
-                    levelersList.appendChild(createChecklistItem(item, savedData));
-                });
-            }
-            if (ssList && typeof checklistSS !== 'undefined') {
-                checklistSS.forEach(item => {
-                    ssList.appendChild(createChecklistItem(item, savedData));
-                });
+
+                if (worldTitleEl) {
+                    worldTitleEl.innerText = `${worldName} (${completedItems} / ${totalItems})`;
+                }
             }
         }
 
+        function saveChecklistData() {
+            try {
+                const savedData = {};
+                if (!checklistPanel) return;
+                const checkboxes = checklistPanel.querySelectorAll('input[type="checkbox"]:checked');
+                checkboxes.forEach(cb => {
+                    savedData[cb.id] = true;
+                });
+                localStorage.setItem(CHECKLIST_SAVE_KEY, JSON.stringify(savedData));
+                updateAllWorldTitles(savedData); // Update titles after saving
+            } catch (e) {
+                console.error("Failed to save checklist data:", e);
+            }
+        }
+
+        function populateWorldChecklists(savedData) {
+            checklistContainer.innerHTML = ''; // Clear previous content
+
+            // Use worldData keys for order, add Miscellaneous at the end
+            const worldOrder = Object.keys(worldData);
+            if (checklistDataByWorld["Miscellaneous"]) {
+                worldOrder.push("Miscellaneous");
+            }
+
+            for (const worldName of worldOrder) {
+                if (!checklistDataByWorld[worldName]) continue;
+
+                const world = checklistDataByWorld[worldName];
+                const worldNameId = worldName.replace(/\s+/g, '-').toLowerCase();
+
+                const section = document.createElement('section');
+                
+                // Create main world title
+                const title = document.createElement('h2');
+                title.className = 'world-section-title';
+                title.id = `world-title-${worldNameId}`;
+                title.innerText = `${worldName} (0 / 0)`; // Will be updated
+                section.appendChild(title);
+
+                // UPDATED: Added 'auras' and 'accessories'
+                const categories = [
+                    { key: 'gachas', name: 'Gachas', css: 'gachas' },
+                    { key: 'progressions', name: 'Progressions', css: 'progressions' },
+                    { key: 'ssRank', name: 'SS Rank', css: 'ssRank' },
+                    { key: 'auras', name: 'Auras', css: 'auras' },
+                    { key: 'accessories', name: 'Accessories', css: 'accessories' }
+                ];
+
+                const subsections = [];
+
+                categories.forEach(cat => {
+                    if (world[cat.key] && world[cat.key].length > 0) {
+                        const subSection = document.createElement('div');
+                        
+                        const subTitle = document.createElement('h3');
+                        subTitle.className = `world-subsection-title ${cat.css}`;
+                        subTitle.id = `${cat.key}-title-${worldNameId}`;
+                        subTitle.innerText = `${cat.name} (0 / ${world[cat.key].length})`;
+                        subSection.appendChild(subTitle);
+                        
+                        const listDiv = document.createElement('div');
+                        listDiv.className = 'space-y-2';
+                        world[cat.key].forEach(item => {
+                            listDiv.appendChild(createChecklistItem(item, savedData));
+                        });
+                        subSection.appendChild(listDiv);
+                        subsections.push(subSection);
+                    }
+                });
+
+                // Only create grid if there are subsections
+                if (subsections.length > 0) {
+                    const grid = document.createElement('div');
+                    // Responsive grid: 1 col mobile, 2 tablet, 3 desktop
+                    let gridCols = 'md:grid-cols-2 lg:grid-cols-3';
+                    if (subsections.length === 1) gridCols = ''; // 1 col
+                    if (subsections.length === 2) gridCols = 'md:grid-cols-2'; // 2 cols
+                    
+                    grid.className = `grid grid-cols-1 ${gridCols} gap-6 mt-4`;
+                    
+                    subsections.forEach(sub => grid.appendChild(sub));
+                    section.appendChild(grid);
+                }
+
+                checklistContainer.appendChild(section);
+            }
+        }
+
+        function loadChecklistData() {
+            try {
+                const savedData = JSON.parse(localStorage.getItem(CHECKLIST_SAVE_KEY)) || {};
+                populateWorldChecklists(savedData);
+                updateAllWorldTitles(savedData);
+            } catch (e) {
+                console.error("Failed to load checklist data:", e);
+                populateWorldChecklists({});
+                updateAllWorldTitles({});
+            }
+        }
+
+        // --- Add Event Listeners ---
         checklistPanel.addEventListener('change', (e) => {
             if (e.target.type === 'checkbox') {
                 styleChecklistItem(e.target, e.target.checked);
@@ -1291,9 +1347,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        loadChecklistData();
-
-        // Using el['check-all-btn'] (correct)
         if (el['check-all-btn']) {
             el['check-all-btn'].addEventListener('click', () => {
                 if (!checklistPanel) return;
@@ -1306,7 +1359,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Using el['uncheck-all-btn'] (correct)
         if (el['uncheck-all-btn']) {
             el['uncheck-all-btn'].addEventListener('click', () => {
                 if (!checklistPanel) return;
@@ -1318,9 +1370,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveChecklistData();
             });
         }
-    } else {
-        console.warn("DEBUG: Checklist data NOT found. Make sure data-checklist.js is loaded BEFORE script.js.");
-    }
-    // --- END OF CHECKLIST LOGIC ---
-});
 
+        // Initial load
+        loadChecklistData();
+
+    } else {
+        console.warn("DEBUG: Checklist data (checklistDataByWorld) or World data (worldData) NOT found. Checklist will not load.");
+    }
+    // --- END OF NEW CHECKLIST LOGIC ---
+});

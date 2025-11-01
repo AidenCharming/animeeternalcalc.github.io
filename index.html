@@ -281,8 +281,7 @@
             </div>
 
             <!-- 
-              PASTE THE NEW PANEL CODE HERE 
-              (This is the part that is missing)
+              PANEL CHECKLIST: ENTIRELY REBUILT
             -->
             <div id="panel-checklist" class="hidden space-y-6">
                 <p class="text-center text-gray-300 -mt-2">Your 100% completion progress. Items are saved in your browser.</p>
@@ -294,32 +293,14 @@
                 </div>
                 <!-- END NEW BUTTON CONTAINER -->
 
-                <!-- Grid container for the checklists -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Column 1: Gachas -->
-                    <section>
-                        <h2 id="gachas-title" class="text-xl font-semibold mb-3 text-emerald-400">Gachas (0 / 36)</h2>
-                        <div id="gachas-list" class="space-y-2">
-                            <!-- Gachas items will be injected here by JS -->
-                        </div>
-                    </section>
-
-                    <!-- Column 2: Levelers -->
-                    <section>
-                        <h2 id="levelers-title" class="text-xl font-semibold mb-3 text-sky-400">Progressions (0 / 55)</h2>
-                        <div id="levelers-list" class="space-y-2">
-                            <!-- Levelers items will be injected here by JS -->
-                        </div>
-                    </section>
-
-                    <!-- Column 3: SS Quest -->
-                    <section>
-                        <h2 id="ss-title" class="text-xl font-semibold mb-3 text-amber-400">SS Quest (0 / 24)</h2>
-                        <div id="ss-list" class="space-y-2">
-                            <!-- Secret Shinies items will be injected here by JS -->
-                        </div>
-                    </section>
+                <!-- 
+                  NEW: This single container will be populated by script.js
+                  with all the world-based sections.
+                -->
+                <div id="checklist-worlds-container" class="space-y-8">
+                    <!-- Worlds will be injected here by JS -->
                 </div>
+
             </div>
             <!-- END OF NEW PANEL -->
 
@@ -327,11 +308,13 @@
     </div>
     
     <!-- 
-      DELETE YOUR OLD <script> TAGS AND REPLACE 
-      THEM WITH THESE THREE. The 'defer' is important.
+      SCRIPT LOADING ORDER CHANGED:
+      - data-core.js (has world data)
+      - data-checklist-worlds.js (NEW: has checklist data, replaces old file)
+      - script.js (main logic)
     -->
     <script src="data-core.js" defer></script>
-    <script src="data-checklist.js" defer></script>
+    <script src="data-checklist-worlds.js" defer></script>
     
     <!-- OPTIMIZATION: Load main script with 'defer'.
          It will correctly wait for the files above before executing. -->
@@ -350,5 +333,3 @@
     </script>
 </body>
 </html>
-
-
