@@ -24,7 +24,6 @@ const checklistDataByWorld = {
   "Windmill Island": {
     gachas: [
       { id: 'g3', name: 'Pirate Crew' },
-      { id: 'g4', name: 'Demon Fruit' },
       { id: 'g5', name: 'Swords' }
     ],
     progressions: [
